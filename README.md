@@ -4,7 +4,11 @@
 
 # Kotlin
 
+# Python
 
+## 安装和配置
+
+[001-python2和python3](python/install/001-python2-python3.md)
 
 # Android
 
