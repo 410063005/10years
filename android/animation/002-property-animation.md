@@ -23,7 +23,19 @@ property animation包括以下属性：
 
 ## 与view animation的区别
 
-https://developer.android.com/guide/topics/graphics/prop-animation
++ view动画的限制： view动画只能用于`View`对象，用于非`View`对象时只能自己另写代码。view动画只能使用`View`对象的少量属性，比如缩放和旋转等等，但不能使用背景色等其他属性。
++ view动画的缺点： view动画只是修改了View的绘制位置，而不是View本身。所以使用view动画移动了button后，看起来button的位置变化了，但实际可点击的位置并未改变。
+
+property动画没有上述限制和缺点。它可以用于`View`对象和非`View`对象，而且会真的修改对象本身。
+
+不过view动画代码量少且简单，如果view动画能满足要求就没必要使用property动画。当然也可以视情况混使用view动画和property动画。
+
+## API
+property动画有两方面：一是计算动画值，二是将值设置到对象。`ValueAnimator`负责第一项，而第二项是开发者自己完成(通过监听方式获取到已计算好的动画值)
+
+evaluator从animator获取时间值，根据时间值计算属性值。
+
+
 
 ## 代码分析
 
