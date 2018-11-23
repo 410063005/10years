@@ -93,7 +93,18 @@ python_version = "3.7"
 
 (看到这个文件有点明白了，哦，原来pipenv就是python的Gradle啊，`Pipfile`文件就是`build.gradle`嘛)
 
-按相同方式安装另一个依赖 `pipenv xmltodict`
+按相同方式安装另一个依赖 `pipenv install xmltodict`
+
+
+pipenv指定私有库
+
+```
+--pypi-mirror TEXT  Specify a PyPI mirror
+```
+
+
+
+
 
 ### 运行程序
 并不是安装依赖后就可以直接运行`cdntool`。直接运行`cdntool`的话你会发现依赖提示`ModuleNotFoundError`。正确的做法是先执行`pipenv shell`激活virtualenv：

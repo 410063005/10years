@@ -6,9 +6,19 @@
 
 # Python
 
+## web开发
+
+[001-mysql](python/django/001-mysql.md)
+
+[002-django](python/django/002-django.md)
+
 ## 安装和配置
 
 [001-python2和python3](python/install/001-python2-python3.md)
+
+[002-pip](python/install/002-pip.md)
+
+[待分类](python/todo.md)
 
 # Android
 
