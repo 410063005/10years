@@ -26,3 +26,6 @@ PasswordAuthentication yes
 ```
 PasswordAuthentication no
 ```
+
+# 参考
+[ref](https://www.digitalocean.com/community/questions/error-permission-denied-publickey-when-i-try-to-ssh)

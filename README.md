@@ -36,4 +36,4 @@
 
 # Linux
 ## ssh
-[001-ssh登录时的permission denied问题](linux/ssh/001-ssh-log.md)
+[001-ssh登录时的permission denied问题](linux/ssh/001-ssh-login.md)
