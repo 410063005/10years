@@ -33,3 +33,7 @@
 [001-检查通知栏是否开启](android/notification/001-are-notifications-enabled.md)
 
 ## 未归类
+
+# Linux
+## ssh
+[001-ssh登录时的permission denied问题](linux/ssh/001-ssh-log.md)
