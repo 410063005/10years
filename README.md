@@ -35,5 +35,9 @@
 ## 未归类
 
 # Linux
+## 常用工具
+
+[001-常用工具之screen](linux/tools-screen.md)
+
 ## ssh
 [001-ssh登录时的permission denied问题](linux/ssh/001-ssh-login.md)
