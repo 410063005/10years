@@ -2,7 +2,7 @@
 ## 并发
 [001-ThreadLocal的用法](java/concurrent/001-threadlocal.md)
 
-[002-ConcurrentHashMap](java/concurrent/002-concurrent-hashmap.md)
+[002-ConcurrentHashMap简介](java/concurrent/002-concurrent-hashmap.md)
 
 # JVM
 
