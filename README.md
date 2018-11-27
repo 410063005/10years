@@ -16,6 +16,10 @@
 
 [002-django](python/django/002-django.md)
 
+[003-跨域问题](python/django/003-django-csrf.md)
+
+[Python 2 和 Python 3 之间的差异](python/python2-vs-python3.md)
+
 ## 安装和配置
 
 [001-python2和python3](python/install/001-python2-python3.md)

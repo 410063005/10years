@@ -1,4 +1,24 @@
 
+# 无法连接
+有时ssh需要通过代理才能使用。
+
+在`~/.ssh/config`文件中配置代理：
+
+```
+ProxyCommand=corkscrew 127.0.0.1 12759 %h %p
+```
+
+记得先安装`corkscrew`工具。
+
+```
+➜  corkscrew
+corkscrew 2.0 (agroman@agroman.net)
+
+usage: corkscrew <proxyhost> <proxyport> <desthost> <destport> [authfile]
+```
+
+# Permission denied
+
 ```
 $ ssh user@server
 Permission denied (publickey)
