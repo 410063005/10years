@@ -48,4 +48,4 @@
 [001-常用工具之screen](linux/tools-screen.md)
 
 ## ssh
-[001-ssh登录时的permission denied问题](linux/ssh/001-ssh-login.md)
+[001-ssh登录常见问题](linux/ssh/001-ssh-login.md)
