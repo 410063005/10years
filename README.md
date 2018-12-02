@@ -42,6 +42,14 @@
 
 [001-检查通知栏是否开启](android/notification/001-are-notifications-enabled.md)
 
+## 性能
+[Android Performance Patterns](android/performace/000-note.md)
+
+
+
+## 代码
+[值得一读的代码](android/code.md)
+
 ## 未归类
 
 # Linux
