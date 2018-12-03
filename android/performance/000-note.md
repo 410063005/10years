@@ -1,3 +1,52 @@
+性能指标
+
++ 架构
+ + Android JetPack, LiveData, MVP, MVVC
+ + Clean Arch
+ + Retrofit
++ 内存 平均值，峰值，后台静置 
+ + onTrimMemory()回调 
+ + GC情况与内存抖动 - 对象池 
+ + 内存泄漏与OOM - LeakCanary
++ CPU 平均值，峰值，静置 
+ + ANR
++ 流量 
+ + 接口 数据包大小 请求耗时 请求成功率
+ + 图片 图片大小，缓存，格式
++ 启动时间 
+ + 多进程问题
+ + app启动时间 度量与优化技巧
+ + activity启动时间
++ 帧率和流畅度
+ + 过度绘制 注意 background属性
+ + 自定义View的性能 如何度量View性能 ClipRect
+ + 减少布局层级以及View数量 Hierachy Viewer
+ + ConstraintLayout
++ 线程
+ + 线程名
++ 包大小 
+ + 优化技巧
++ 构建及发布
+ + 加快构建速度
+ + 发布渠道包
+ + 好的构建环境
++ crash
+ + 热修复
+ + RDM
+ + lint, codecc 
++ 工具
+ + Android Studio
+ + GT
+ + 过度绘制
+ + 内存分析
+ + LeakCanary
+ + Systrace
++ 新技术 - RxJava, Kotlin 的协程, weex
+
+每个指标的分析方法，工具，安例
+
+---
+
 LRUCache 的正确用法(避免撑爆内存)
 
 ```java
@@ -19,6 +68,8 @@ public class ThumbnailCache extends LruCache<String, Bitmap> {
 
 [ref](https://www.youtube.com/watch?v=R5ON3iwx78M&list=PL8ktV16dN_6vKDQB-D7fAqA6zRFQOoKtI)
 [ref2](https://www.youtube.com/watch?v=R5ON3iwx78M&index=44&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE)
+
+[关于 Cache 的理论知识](https://www.youtube.com/watch?v=JkwrNmCwFfA&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=19)
 ---
 
 lint的用法
@@ -105,7 +156,7 @@ StrictMode.setThreadPolicy(new
 + 只在必要时调用 `View.invalidate()`
 + 调用 `View.invalidate()` 时总是带上 Rect 参数
 
-可以通过 `Canvas.clip()` 方法得到 Rect
+可以通过 `Canvas.clip()` 方法得到 Rect。见 ClipRect 
 
 draw() 的流程
 
@@ -120,7 +171,7 @@ draw() 的流程
 
 问题二：wasted CPU cycles
 
-
+自定义 View 的性能问题
 
 [ref](https://www.youtube.com/watch?v=zK2i7ivzK7M&list=PL8ktV16dN_6vKDQB-D7fAqA6zRFQOoKtI&index=6)
 
@@ -156,11 +207,24 @@ batching work until later
 - 数据压缩
 - 
 
+网络访问速度的几个经验值 [ref](https://www.youtube.com/watch?v=uzboHWX3Kvc&index=14&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE)
+
+- < 60ms - GOOD
+- 60~220ms - OK
+- > 220ms - BAD
+
+推荐使用工具
+
+- Emulator Throttling - 模拟较差的网络
 
 
 [ref](https://www.youtube.com/watch?v=-3ry8PxcJJA&index=7&list=PL8ktV16dN_6vKDQB-D7fAqA6zRFQOoKtI)
 
 [为什么要使用 JobScheduler](https://www.youtube.com/watch?v=fEEulSk1kNY&t=0s&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=39)
+
+[如何优化网络性能](https://www.youtube.com/watch?v=l5mE3Tpjejs&t=159s)
+
+[如何优化网络性能2](https://www.youtube.com/watch?v=Ecz5WDZoJok&index=37&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE)
 
 ---
 
@@ -194,9 +258,11 @@ Google 关键字 Creating smaller PNG files
 
 推荐使用工具： ScriptPNG
 
+建议做法：服务器端为图片存储不同质量和尺寸的版本，客户端按需取用
 
 [ref](https://www.youtube.com/watch?v=2TUvmlGoDrw&list=PL8ktV16dN_6vKDQB-D7fAqA6zRFQOoKtI&index=9)
 
+[ref2](https://www.youtube.com/watch?v=ts5o6t7enOk&index=15&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE)
 
 ---
 scale bitmap
@@ -321,6 +387,9 @@ Rendering Performance  渲染效率
 
 [ref](https://www.youtube.com/watch?v=T52v50r-JfE&list=PL8ktV16dN_6vKDQB-D7fAqA6zRFQOoKtI&index=16)
 
+[ref](https://www.youtube.com/watch?v=KFklLqiEG6w&index=21&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE)
+
+
 ---
 
 理解 VSYNC
@@ -431,5 +500,45 @@ RelativeLayout 不要作为复杂界面的根布局
 + Hierachy Viewer - 减少 View
 + 不要随意调用 `requestLayout`
 
+---
 
-TODO season3 episode 9
+优化apk大小：使用proguard (压缩， 优化， 混淆)
+
+```groovy
+android {
+	buildTypes {
+		release {
+			minifyEnabled true
+			shrinkResources true
+		}
+	}
+}
+```
+
+如果某些资源要保留，使用 `tools:keep`
+
+如果某些资源要移除，使用 `tools:discard`
+
+合理使用 buildFlavor
+
+[ref](https://www.youtube.com/watch?v=5frxLkO4oTM&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=17)
+
+[ref](https://www.youtube.com/watch?v=HxeW6DHEDQU&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=18)
+
+TODO https://www.youtube.com/watch?v=sId51btzn_A&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=22
+
+https://proandroiddev.com/kotlin-coroutines-vs-rxjava-an-initial-performance-test-68160cfc6723
+
+https://proandroiddev.com/forget-rxjava-kotlin-coroutines-are-all-you-need-part-1-2-4f62ecc4f99b
+
+https://stackoverflow.com/questions/48106252/why-threads-are-showing-better-performance-than-coroutines
+
+https://stackoverflow.com/questions/42066066/how-kotlin-coroutines-are-better-than-rxkotlin
+
+https://stackoverflow.com/questions/49606471/why-and-when-to-use-co-routines-instead-of-threads-in-android-using-kotlin-as-th
+
+https://expertise.jetruby.com/kotlin-coroutines-on-android-farewell-rxjava-56a580463af7
+
+https://medium.com/capital-one-tech/coroutines-and-rxjava-an-asynchronicity-comparison-part-1-asynchronous-programming-e726a925342a
+
+https://medium.com/capital-one-tech/kotlin-coroutines-on-android-things-i-wish-i-knew-at-the-beginning-c2f0b1f16cff
