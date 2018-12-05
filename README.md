@@ -10,7 +10,7 @@
 
 # Python
 ## 基础
-[001-关于IOLoop的理解](python/basic/001-io-loop.md)
+[001-关于tornado IOLoop的理解](python/basic/001-io-loop.md)
 
 ## web开发
 
@@ -24,7 +24,7 @@
 
 ## 安装和配置
 
-[001-python2和python3](python/install/001-python2-python3.md)
+[001-python2和python3共存](python/install/001-python2-python3.md)
 
 [002-pip](python/install/002-pip.md)
 
@@ -33,8 +33,6 @@
 # Android
 
 ## Bitmap
-
-[ImageLoader优化记录](android/bitmap/099-image-loader-opt.md)
 
 ## Animation
 
