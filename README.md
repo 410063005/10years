@@ -32,6 +32,10 @@
 
 # Android
 
+## Bitmap
+
+[ImageLoader优化记录](android/bitmap/099-image-loader-opt.md)
+
 ## Animation
 
 [001-view动画](#)
