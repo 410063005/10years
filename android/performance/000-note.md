@@ -1,47 +1,52 @@
 性能指标
 
 + 架构
- + Android JetPack, LiveData, MVP, MVVC
- + Clean Arch
- + Retrofit
+  + Android JetPack, LiveData, MVP, MVVC
+  + Clean Arch
+  + Retrofit
 + 内存 平均值，峰值，后台静置 
- + onTrimMemory()回调 
- + GC情况与内存抖动 - 对象池 
- + 内存泄漏与OOM - LeakCanary
+  + onTrimMemory()回调 
+  + GC情况与内存抖动 - 对象池 
+  + 内存泄漏与OOM - LeakCanary
 + CPU 平均值，峰值，静置 
- + ANR
+  + ANR
 + 流量 
- + 接口 数据包大小 请求耗时 请求成功率
- + 图片 图片大小，缓存，格式
+  + 接口 数据包大小 请求耗时 请求成功率
+  + 图片 图片大小，缓存，格式
 + 启动时间 
- + 多进程问题
- + app启动时间 度量与优化技巧
- + activity启动时间
+  + 多进程问题
+  + app启动时间 度量与优化技巧
+  + activity启动时间
 + 帧率和流畅度
- + 过度绘制 注意 background属性
- + 自定义View的性能 如何度量View性能 ClipRect
- + 减少布局层级以及View数量 Hierachy Viewer
- + ConstraintLayout
+  + 过度绘制 注意 background属性
+  + 自定义View的性能 如何度量View性能 ClipRect
+  + 减少布局层级以及View数量 Hierachy Viewer
+  + ConstraintLayout
 + 线程
- + 线程名
+  + 线程名
 + 包大小 
- + 优化技巧
+  + 优化技巧
 + 构建及发布
- + 加快构建速度
- + 发布渠道包
- + 好的构建环境
+  + 加快构建速度
+  + 发布渠道包
+  + 好的构建环境
 + crash
- + 热修复
- + RDM
- + lint, codecc 
+  + 热修复
+  + RDM
+  + lint, codecc 
 + 工具
- + Android Studio
- + GT
- + 过度绘制
- + 内存分析
- + LeakCanary
- + Systrace
-+ 新技术 - RxJava, Kotlin 的协程, weex
+  + Android Studio
+  + GT
+  + 过度绘制
+  + 内存分析
+  + LeakCanary
+  + Systrace
++ 新技术 
+  + java 8
+  + RxJava
+  + Kotlin 的协程, 
+  + weex
+  + Flutter
 
 每个指标的分析方法，工具，安例
 
