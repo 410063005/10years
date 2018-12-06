@@ -41,6 +41,7 @@
   + 内存分析
   + LeakCanary
   + Systrace
+  + StrictMode 
 + 新技术 
   + java 8
   + RxJava
