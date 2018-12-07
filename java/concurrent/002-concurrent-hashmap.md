@@ -26,4 +26,8 @@ private static class SynchronizedMap<K,V>
 
 > 它是支持完全并发读和高并发写的hash table。这个类遵守`java.util.Hashtable`的一些功能规范，并且有每个方法的对应方法。虽然`ConcurrentHashMap`的每个方法都是线程安全的，但读操作并不需要加锁，而且也不支持锁定整个table以防止任何的访问操作。可以将`ConcurrentHashMap`理解为`Hashtable`的另一个版本，它也是线程安全的，但并不需要锁。
 
+[
+
 [ref]([Java7/8 中的 HashMap 和 ConcurrentHashMap 全解析 - ImportNew](http://www.importnew.com/28263.html))
+
+[ref2](https://javadoop.com/post/hashmap)

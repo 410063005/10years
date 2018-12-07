@@ -24,6 +24,7 @@
   + ConstraintLayout
 + 线程
   + 线程名
+  + 线程的优先级 (尤其是 worker 线程，比如 HandlerThread)
 + 包大小 
   + 优化技巧
 + 构建及发布
@@ -48,6 +49,7 @@
   + Kotlin 的协程, 
   + weex
   + Flutter
+  + Android JetPac
 
 每个指标的分析方法，工具，安例
 
@@ -434,7 +436,7 @@ SparseArray
 
 适用场景：
 
-+ <1000 objects
++ 少于 1000 objects
 + map of map
 
 [ref](https://www.youtube.com/watch?v=I16lz26WyzQ&list=PL8ktV16dN_6vKDQB-D7fAqA6zRFQOoKtI&index=20)
@@ -531,7 +533,28 @@ android {
 
 [ref](https://www.youtube.com/watch?v=HxeW6DHEDQU&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=18)
 
-TODO https://www.youtube.com/watch?v=sId51btzn_A&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=22
+---
+
+实验验证一下[这个视频](https://www.youtube.com/watch?v=qBxeHkvJoOQ&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=25)当中提到的技巧 
+
+Array of Structures v.s. Structure of Arrays
+
+后者性能要好？
+
+试用一下 FlatBuffers
+
+---
+
+AsyncTask 使用不当时非常容易出现内存泄漏，主要内部是内部类对外部类有一个不明确的引用。检查我们 app 中是否有这种情况
+
+[ref](https://www.youtube.com/watch?v=jtlRNNhane0&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&index=4)
+
+
+---
+
+
+--
+
 
 https://proandroiddev.com/kotlin-coroutines-vs-rxjava-an-initial-performance-test-68160cfc6723
 
