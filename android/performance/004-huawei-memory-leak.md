@@ -9,7 +9,12 @@
 LeakCanary 的测试结果非常明显
 
 # Android Studio Profiler 的测试结果
-再来拿 Android Studio Profiler 进行对比测试。
+再来拿 Android Studio Profiler 进行对比测试。操作步骤如下：
+
+1. back 键退出应用
+2. Profiler 中强制 GC
+3. 等待足够长的时间后 dump heap
+4. 对 heap 进行分析
 
 ![](004-huawei-memory-leak/2.png)
 上图表明某个静态字段最终引用到了 `HwPhoneWindow` 实例
