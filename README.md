@@ -52,6 +52,7 @@
 ## 性能
 [Android Performance Patterns](android/performance/000-note.md)
 
+[001-记录华为手机系统引起的一个内存泄漏问题](android/performance/004-huawei-memory-leak.md)
 
 ## 代码
 [值得一读的代码](android/code.md)
