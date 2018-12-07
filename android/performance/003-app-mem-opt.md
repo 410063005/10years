@@ -183,9 +183,98 @@ viewPager.addOnPageChangeListener {
     }
 ```
 
+CPU 一直有轻微占用, 对应的 Fragment 和 Activity 内存泄漏
+
+
 `ViewPager` 中的 Fragment 如何优雅地停止或重启某些操作？
 
 ---
+
+应用有三个进程。应当只为主进程初始化weex模块。
+
+
+QALSERVICE 进程和 QALSERVICE 进程均减少 1.5MB 左右内存。具体做法是在 
+ `Application.onCreate()` 方法中判断当前进程，只为主进程初始化weex
+
+
+优化前：
+
+
+```
+** MEMINFO in pid 12113 [:QALSERVICE] **
+
+App Summary
+                       Pss(KB)
+                        ------
+           Java Heap:     3896
+         Native Heap:     3464
+                Code:      368
+               Stack:       32
+            Graphics:        0
+       Private Other:     2572
+              System:     4088
+
+               TOTAL:    14420       TOTAL SWAP PSS:       87
+```
+
+```
+** MEMINFO in pid 12174 [:NSFService] **
+
+ App Summary
+                       Pss(KB)
+                        ------
+           Java Heap:     4044
+         Native Heap:     2904
+                Code:      272
+               Stack:       32
+            Graphics:        0
+       Private Other:     2420
+              System:     4648
+
+               TOTAL:    14320       TOTAL SWAP PSS:       87
+```
+
+优化后
+
+```
+
+** MEMINFO in pid 12844 [:NSFService] **
+
+ App Summary
+                       Pss(KB)
+                        ------
+           Java Heap:     4436
+         Native Heap:     2932
+                Code:      308
+               Stack:       32
+            Graphics:        0
+       Private Other:     2912
+              System:     5076
+
+               TOTAL:    15696       TOTAL SWAP PSS:       87
+```
+
+```
+
+** MEMINFO in pid 12790 [:QALSERVICE] **
+
+
+ App Summary
+                       Pss(KB)
+                        ------
+           Java Heap:     4196
+         Native Heap:     3600
+                Code:      392
+               Stack:       32
+            Graphics:        0
+       Private Other:     2804
+              System:     4811
+
+               TOTAL:    15835       TOTAL SWAP PSS:       87
+```
+
+---
+
 
 Android 8.0, Glide 3.7, Native heap 超过100MB，占比最大。原因？
 
