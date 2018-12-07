@@ -5,9 +5,13 @@ To set the stage for this lesson, here is how Android's management of bitmap mem
 + On Android Android 2.2 (API level 8) and lower, when garbage collection occurs, your app's threads get stopped. This causes a lag that can degrade performance. Android 2.3 adds concurrent garbage collection, which means that the memory is reclaimed soon after a bitmap is no longer referenced.
 + On Android 2.3.3 (API level 10) and lower, the backing pixel data for a bitmap is stored in native memory. It is separate from the bitmap itself, which is stored in the Dalvik heap. The pixel data in native memory is not released in a predictable manner, potentially causing an application to briefly exceed its memory limits and crash. From Android 3.0 (API level 11) through Android 7.1 (API level 25), the pixel data is stored on the Dalvik heap along with the associated bitmap. In Android 8.0 (API level 26), and higher, the bitmap pixel data is stored in the native heap.
 
+---
+
 关于 `View.invalidate()` 的小知识
 
 `public void invalidate(int l, int t, int r, int b)`被废弃了。The switch to hardware accelerated rendering in API 14 reduced the importance of the dirty rectangle. In API 21 the given rectangle is ignored entirely in favor of an internally-calculated area instead. Because of this, clients are encouraged to just call {@link #invalidate()}.
+
+---
 
 关于 Glide 的小知识
 
@@ -19,6 +23,31 @@ D/MemorySizeCalculator: Calculated memory cache size: 18.58 MB pool size: 37.15 
 
 + memory cache size - 18.58MB
 + pool size - 37.15MB
+
+---
+
+关于 shallow size 和 retained size
+
+shallow size 可理解为浅层大小，即对象自身占用的内存大小。 
+
++ 数组的 shallow size 由数组大小及数组元素类型决定
++ 一个对象集的 shallow size 是对象集中每个对象的 shallow size 和
+
+![](app-mem-opt/long-shallow-size.png)
+
+retained size 可理解为保留大小，即对象本身的 shallow size 加上所有可达对象的 shallow size。换句话说就是对象本身连同其无法从 GC 根到达的相关对象一起删除后释放的内存大小。
+
+native size 某些对象的实际数据并不是分配在Java堆上而是分配在 C 或 C++ 中分配，所以还能看到 native size 不为0
+
+![](app-mem-opt/navite-size.png)
+
+[ref](https://developers.google.com/web/tools/chrome-devtools/memory-problems/memory-101?hl=zh-cn)
+
+[ref2](https://www.yourkit.com/docs/java/help/sizes.jsp)
+
+[ref3](https://help.eclipse.org/mars/index.jsp?topic=%2Forg.eclipse.mat.ui.help%2Fconcepts%2Fshallowretainedheap.html)
+
+---
 
 
 在 Android Studio Profiler 中发现 app 在前台静置时，也一直在创建对象，内存缓慢上升。随之而来发生一次GC
