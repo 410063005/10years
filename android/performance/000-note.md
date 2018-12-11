@@ -392,6 +392,10 @@ Rendering Performance  渲染效率
 
 要尽量减少重绘
 
+减少过度重绘的技巧 [ref](https://developer.android.com/topic/performance/rendering/overdraw)
+
+lint 也可以检查出 Overdraw 问题
+
 
 [ref](https://www.youtube.com/watch?v=T52v50r-JfE&list=PL8ktV16dN_6vKDQB-D7fAqA6zRFQOoKtI&index=16)
 
@@ -552,6 +556,42 @@ AsyncTask 使用不当时非常容易出现内存泄漏，主要内部是内部�
 
 ---
 
++ CPU
+  + CPU 利用率, thread states, method trace, system trace
++ Memory
+  + Allocation tracking, heap dump
++ Network
+  + request, response, payloads
++ Energy
+  + wakelocks, jobs, alarms, location
+
+
+技巧一：根据实际调整 CPU recording config, 主要是采样时间。
+
+技巧二：如何精确采样。
+
+使用 `Debug` 获取 Trace 时应注意文件命名不要重复，以免同名文件被覆盖。
+
+技巧三：搜索功能
+
+技巧四：System trace 与  Trace 结合使用
+
+相关视频
+
+Google IO 2018 Improve app performance with Android Studio Profilers
+
+Android Game Developer Summit 2018 Android Studio Profiling
+
++ filtering in CPU & memory profilers
++ WASD  快捷键用于 zoom 和 navigate
++ zoom to selection
++ memory allocation tracking (sample, full, none)
++ export/import CPU recordings & heap dump
++ consider depths in heap dumps
++ observe Activity and Fragment lifecycle
+
+
+[Deep Dive into Android Studio Profilers (Android Dev Summit '18) - YouTube](https://www.youtube.com/watch?v=LGVbpobV-Yg&list=PLWz5rJ2EKKc_AZpvyAwl1QDg5WQp5hpRd)
 
 --
 

@@ -49,6 +49,32 @@ native size 某些对象的实际数据并不是分配在Java堆上而是分配�
 
 ---
 
+内存分析的技巧：
+
+在您的堆转储中，请注意由下列任意情况引起的内存泄漏：
+
++ 长时间引用 Activity、Context、View、Drawable 和其他对象，可能会保持对 Activity 或 Context 容器的引用。
++ 可以保持 Activity 实例的非静态内部类，如 Runnable。
++ 对象保持时间超出所需时间的缓存。
+
+使用 Memory Profiler 时，您应对应用代码施加压力并尝试强制内存泄漏。 在应用中引发内存泄漏的一种方式是，先让其运行一段时间，然后再检查堆。 泄漏在堆中可能逐渐汇聚到分配顶部。 不过，泄漏越小，您越需要运行更长时间的应用才能看到泄漏。
+
+您还可以通过以下方式之一触发内存泄漏：
+
++ 将设备从纵向旋转为横向，然后在不同的 Activity 状态下反复操作多次。 旋转设备经常会导致应用泄漏 Activity、Context 或 View 对象，因为系统会重新创建 Activity，而如果您的应用在其他地方保持对这些对象之一的引用，系统将无法对其进行垃圾回收。
++ 处于不同的 Activity 状态时，在您的应用与另一个应用之间切换（导航到主屏幕，然后返回到您的应用）。
+
+
+[ref](https://developer.android.com/studio/profile/memory-profiler)
+
+---
+
+[Android Studio 3.0](https://www.youtube.com/watch?v=6hTC-fcVPtk&feature=youtu.be) 使用技巧
+
+视频演示了 Android Profiler 的用法
+
+
+---
 
 在 Android Studio Profiler 中发现 app 在前台静置时，也一直在创建对象，内存缓慢上升。随之而来发生一次GC
 
@@ -190,6 +216,12 @@ CPU 一直有轻微占用, 对应的 Fragment 和 Activity 内存泄漏
 
 ---
 
+```
+adb shell dumpsys meminfo <packagename>
+
+adb shell dumpsys meminfo <pid>
+```
+
 应用有三个进程。应当只为主进程初始化weex模块。
 
 
@@ -282,3 +314,21 @@ App Summary
 Android 8.0, Glide 3.7, Native heap 超过100MB，占比最大。原因？
 
 
+
+---
+
+低性能方法
+
+Html.fromHtml()
+
+View.requestLayout()
+
+
+
+低性能自定义控件
+
+EmojiTextView
+
+
+
+---
