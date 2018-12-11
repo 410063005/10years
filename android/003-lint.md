@@ -139,8 +139,10 @@ dependencies {
 }
 ```
 
-参考自[这里](https://github.com/googlesamples/android-custom-lint-rules/tree/master/android-studio-3)
+参考自
 
++ [这里](https://github.com/googlesamples/android-custom-lint-rules/tree/master/android-studio-3)
++ [这里](https://medium.com/@vanniktech/writing-your-first-lint-check-39ad0e90b9e6)
 
 
 # 建议
@@ -195,6 +197,78 @@ dependencies {
 
 ![](003-lint/3.png)
 
+## ObsoleteSdkInt
+
+> This check flags version checks that are not necessary, because the minSdkVersion (or surrounding known API level) is already at least as high as the version checked for.  
+> Similarly, it also looks for resources in -vNN folders, such as values-v14 where the version qualifier is less than or equal to the minSdkVersion, where the contents should be merged into the best folder.
+
+我们项目的 minSdkVersion 为 18，所以类似如下这种判断已经无意义，完全可以去掉。
+
+```java
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+        mLvList.smoothScrollToPositionFromTop(0, 0);
+    } else {
+        mLvList.setSelection(0);
+    }
+```
+
+[Google Play services discontinuing updates for API levels 14 and 15](https://android-developers.googleblog.com/2018/12/google-play-services-discontinuing.html)
+
+## StaticFieldLeak
+这类问题很容易就容易忽略。当然，通常来说不会引起太严重的泄漏问题。常见的情况包括：
+
++ 单例模式，使用静态字段且单例对象持有 Context
++ Handler 子类作为 Activity/Fragment 内部类 
+
+解决办法：
+
++ 对第一种情况，只要注意让单例对象持有 application context 而不是 activity 通常就能避免问题 (只是 lint 仍然会告警)
++ 对第二种情况，需要牢记 Handler 作为内部类会持有外部类的引用，可能引起内存泄漏 (使用 WeakReference 等方式避免强引用)
+
+```java
+public class SafeHandler<T extends Handler.Callback> extends Handler {
+    private WeakReference<T> mRef;
+
+    public SafeHandler(WeakReference<T> ref) {
+        mRef = ref;
+    }
+
+    public SafeHandler(T callback) {
+        mRef = new WeakReference<>(callback);
+    }
+
+    public T getCallback() {
+        return mRef.get();
+    }
+
+    @Override
+    public void handleMessage(android.os.Message msg) {
+        super.handleMessage(msg);
+        Handler.Callback callback = getCallback();
+        if (callback != null) {
+            callback.handleMessage(msg);
+        }
+    }
+}
+```
+
+用法：
+
+```java
+public class DemoActivity extends Activity implements Handler.Callback {
+
+    private SafeHandler<DemoActivity> mSafeHandler = new SafeHandler<>(new WeakReference<>(this));
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+         mSafeHandler.sendEmptyMessageDelayed(0, 5 * 60 * 1000);
+    }
+
+    public boolean handleMessage(Message message) {
+        // handle message
+    }    
+```
+
 # 参考
 [Getting the Most Out of Android Lint (Android Dev Summit '18) - YouTube](https://www.youtube.com/watch?v=ffH-LD5uP4s&index=3&list=PLWz5rJ2EKKc_AZpvyAwl1QDg5WQp5hpRd)
 
@@ -203,3 +277,7 @@ dependencies {
 [使用注解改进代码检查  |  Android Developers](https://developer.android.com/studio/write/annotations)
 
 [googlesamples/android-custom-lint-rules: This sample demonstrates how to create a custom lint checks and corresponding lint tests](https://github.com/googlesamples/android-custom-lint-rules)
+
+[lint example](https://developer.android.com/studio/write/lint#example)
+
+[lint annatation](https://developer.android.com/studio/write/annotations)
