@@ -39,7 +39,9 @@
 
 [002-Android常用库](android/002-android-lib.md)
 
-[003-lint使用技巧](android/003-lint.md)
+[003-Lint使用技巧](android/003-lint.md)
+
+[004-深入理解Activity](android/004-activity.md)
 
 ## Bitmap
 
