@@ -39,6 +39,8 @@
 
 [002-Android常用库](android/002-android-lib.md)
 
+[003-lint使用技巧](android/003-lint.md)
+
 ## Bitmap
 
 ## Animation
@@ -55,6 +57,10 @@
 [Android Performance Patterns](android/performance/000-note.md)
 
 [001-记录华为手机系统引起的一个内存泄漏问题](android/performance/004-huawei-memory-leak.md)
+
+[002-view优化技巧](android/performance/002-view-opt-tips.md)
+
+[003-内存优化技巧](android/performance/003-app-mem-opt.md)
 
 ## 代码
 [值得一读的代码](android/code.md)
