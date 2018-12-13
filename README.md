@@ -43,6 +43,9 @@
 
 [004-深入理解Activity](android/004-activity.md)
 
+## 常用库
+[001-dagger](android/lib/001-dagger.md)
+
 ## Bitmap
 
 ## Animation
