@@ -43,8 +43,12 @@
 
 [004-深入理解Activity](android/004-activity.md)
 
+## 架构
+[架构](android/lib/002-arch.md)
+
 ## 常用库
 [001-dagger](android/lib/001-dagger.md)
+
 
 ## Bitmap
 
