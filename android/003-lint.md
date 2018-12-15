@@ -159,17 +159,7 @@ dependencies {
 原先使用 RelativeLayout, 后来布局变化，但是 `layout_centerHorizontal` 参数没有去掉。
 
 ## InefficientWeight 
-
-```xml
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right"
-            android:orientation="horizontal">
-```
-
-> When only a single widget in a LinearLayout defines a weight, it is more efficient to assign a width/height of 0dp to it since it will absorb all the remaining space anyway. With a declared width/height of 0dp it does not have to measure its own size first.
+请参考 [0dp优化的由来](view/001-0dp.md)
 
 ## NestedWeights
 
@@ -179,10 +169,22 @@ dependencies {
 
 ## UnusedNamespace
 
-
+![](003-lint/4.png)
 
 > Unused namespace declarations take up space and require processing that is not necessary
 
+
+## UselessLeaf
+
+没有 id，没有 background 的无用子节点
+
+![](003-lint/5.png)
+
+![](003-lint/6.png)
+
+完全可以使用更轻量级的控件代替原来的 `LinearLayout`
+
+![](003-lint/7.png)
 
 ## Overdraw
 一类典型的过度绘制问题。Activity 的默认主题中设置了 `android:windowBackground`，而视觉设计图要求 Activity 的根布局有一个背景色 (不同于 `android:windowBackground` 的颜色)，引起过度绘制。
@@ -272,9 +274,9 @@ public class DemoActivity extends Activity implements Handler.Callback {
 # 参考
 [Getting the Most Out of Android Lint (Android Dev Summit '18) - YouTube](https://www.youtube.com/watch?v=ffH-LD5uP4s&index=3&list=PLWz5rJ2EKKc_AZpvyAwl1QDg5WQp5hpRd)
 
-[使用 Lint 改进您的代码  |  Android Developers](https://developer.android.com/studio/write/lint#example)
+[使用 Lint 改进您的代码  |  Android Developers](https://developer.android.com/studio/write/lint#example)
 
-[使用注解改进代码检查  |  Android Developers](https://developer.android.com/studio/write/annotations)
+[使用注解改进代码检查  |  Android Developers](https://developer.android.com/studio/write/annotations)
 
 [googlesamples/android-custom-lint-rules: This sample demonstrates how to create a custom lint checks and corresponding lint tests](https://github.com/googlesamples/android-custom-lint-rules)
 
