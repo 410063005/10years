@@ -1,10 +1,12 @@
 
-聊天 Android View 的绘制流程。从 TextSwitcher 的低性能说起。
+从 TextSwitcher 的低性能说起，顺便聊聊 Android View 的绘制流程。
 
 # 问题
-文字轮播时遇到性能问题。
+我们 app 文字轮播时遇到性能问题。(当然，问题并不严重，只不过是帧率不高。但问题很诡异)
 
-布局如下。(实际 app 中的布局一般更为复杂，所以这里故意加几层 LinearLayout 来加深布局层级，更接近实际便于观察问题)
+这里用一个 demo 来演示这个问题。
+
+实际 app 中的布局比这个 demo 复杂得多，所以这里故意加几层 LinearLayout 来加深布局层级，更接近实际便于观察问题。布局文件如下：
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -44,6 +46,8 @@
 </android.support.constraint.ConstraintLayout>
 ```
 
+`MainActivity` 中使用 Handler 消息让 textSwitcher 每3秒轮播文字。轮播带简单动画效果，这里就不上动效文件。
+
 ```kotlin
 class MainActivity : AppCompatActivity(), Handler.Callback {
 
@@ -82,28 +86,30 @@ class MainActivity : AppCompatActivity(), Handler.Callback {
 }
 ```
 
-性能如下：
+从图中可以看到每隔3秒就会出现一个很明显的长条。虽然还不至于超过 16ms 的限制，但考虑到这个界面这么简单的情况性能居然也很差，可以推断这其中一定有问题。
 
-![](002-view-opt-tips/1.png)
+![](002-text-switcher-perf/1.png)
 
-从图中可以看到每隔3秒就会出现一个很高的条形图。这个条形图主要是由绿色区域导致突然变高的。
+这个条形图主要是由绿色区域导致突然变高的。官方文档中提到绿色区域代表 `onLayout` 和 `onMeasure` 回调的耗时。
 
-![](002-view-opt-tips/2.png) [ref](https://developer.android.com/studio/profile/inspect-gpu-rendering)
+![](002-text-switcher-perf/2.png) [GPU Rendering](https://developer.android.com/studio/profile/inspect-gpu-rendering)
 
-根据官方文档我们知道绿色区域代表了  onLayout 和 onMeasure 回调的耗时。
+所以我们的问题在于布局性能不高。
 
-![](002-view-opt-tips/3.png)
+使用 Android Profiler 对该问题进行分析。发现 `handleMessage()` 其实处理得很快，只需要6ms左右。真正的问题在于， 
 
-handleMessage() 处理得很快，只需要6ms左右。但由于调用 `View.setVisibility()` 引起 `requestLayout()`，导致整个界面重新布局。
++ `TextSwitcher` 调用了 `View.setVisibility()`并最终调用到  `View.requestLayout()`，
++ `View.requestLayout` 导致整个界面重新布局，每3秒发生一次重新布局
+
+![](002-text-switcher-perf/3.png)
 
 # how android draw views
 
-[How Android Draws Views  |  Android Developers](https://developer.android.com/guide/topics/ui/how-android-draws)
+[How Android Draws Views  |  Android Developers](https://developer.android.com/guide/topics/ui/how-android-draws)
 
 文档中说得比较简单。
 
-![](002-view-opt-tips/5.png)
-
+![](002-text-switcher-perf/5.png)
 
 结合上面这个图看会很直观：
 
@@ -120,25 +126,8 @@ handleMessage() 处理得很快，只需要6ms左右。但由于调用 `View.set
 + 谁是 Android framework ？- 可以理解为上图中的 `android.view.Choreographer.doFrame()`
 + 谁是 the root node of its layout hierarchy ？ - 可以简单地理解为 `Activity.setContentView()` 中传进入的那个 View (当然实际上它并不是真正的 root node)
 
-#
-
-
-
----
-
-
-
-
-ListView 的 ViewHolder模式。它的优点：
-
-+ 减少 View 的创建
-+ 减少 `findViewById()` 的调用
-
-减少View。常见的策略包括：
-
-+ `TextView` 和 `ImageView` 合并
-+ 使用custom state。例子见[view-reduction](https://sriramramani.wordpress.com/2013/03/25/view-reduction/)，这个例子将一个复杂布局优化成只使用一个 `TextView`
-
+# 优化
+如何实现一个高性能版本的 `TextSwitcher` ？
 
 
 

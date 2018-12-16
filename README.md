@@ -67,7 +67,7 @@
 
 [001-记录华为手机系统引起的一个内存泄漏问题](android/performance/004-huawei-memory-leak.md)
 
-[002-view优化技巧](android/performance/002-view-opt-tips.md)
+[002-view优化技巧](android/performance/002-view-opt.md)
 
 [003-内存优化技巧](android/performance/003-app-mem-opt.md)
 
