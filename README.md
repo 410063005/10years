@@ -83,3 +83,24 @@
 
 ## ssh
 [001-ssh登录常见问题](linux/ssh/001-ssh-login.md)
+
+---
+
+pip3 install ss
+
+ss -p 8080 -k password -m rc4-md5 -d start
+
+```
+vi /etc/ss.json
+
+{
+  "server": "0.0.0.0",
+  "server_port": 8080,
+  "local_port": 1080,
+  "password": "123456",
+  "timeout": 600,
+  "method": "rc4-md5"
+}
+
+ss -c /etc/ss.json -d start
+```
