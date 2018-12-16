@@ -39,7 +39,11 @@ PasswordAuthentication yes
 
 重启sshd服务，`/etc/init.d/sshd restart`
 
-再次`ssh user@server`。这时会提示输入密码。正确输入密码后，下次就可以直接登录了。
+使用 ssh-copy-id 命令手动将公钥文件拷贝到目标机器
+
+```
+ssh-copy-id -i .ssh/id_rsa.pub  用户名字@192.168.x.xxx
+```
 
 `Permission denied (publickey)`问题解决后记得关闭密码登录功能。
 
