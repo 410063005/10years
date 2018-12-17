@@ -1,4 +1,8 @@
 
+[浅谈 MVC、MVP 和 MVVM 架构模式](https://draveness.me/mvx)
+
+[MVC，MVP 和 MVVM 的图示 - 阮一峰的网络日志](http://www.ruanyifeng.com/blog/2015/02/mvcmvp_mvvm.html)
+
 架构
 
 [googlesamples/android-architecture: A collection of samples to discuss and showcase different architectural tools and patterns for Android apps.](https://github.com/googlesamples/android-architecture)

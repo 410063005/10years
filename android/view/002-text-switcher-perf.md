@@ -126,8 +126,19 @@ class MainActivity : AppCompatActivity(), Handler.Callback {
 + 谁是 Android framework ？- 可以理解为上图中的 `android.view.Choreographer.doFrame()`
 + 谁是 the root node of its layout hierarchy ？ - 可以简单地理解为 `Activity.setContentView()` 中传进入的那个 View (当然实际上它并不是真正的 root node)
 
+[platform_frameworks_base/ViewRootImpl.java at master · aosp-mirror/platform_frameworks_base](https://github.com/aosp-mirror/platform_frameworks_base/blob/master/core/java/android/view/ViewRootImpl.java)
+
 # 优化
 如何实现一个高性能版本的 `TextSwitcher` ？
 
+## [TextBannerView](https://github.com/ChessLuo/TextBannerView)
+`TextBannerView` 基于 `ViewFlipper` 实现，性能仍然很差
 
+（注意： `TextSwitcher` 也是 `ViewFlipper` 的子类)
 
+## RecyclerView
+
+使用 RecyclerView 来实现跑马灯效果。
+
++ [效果一](https://www.jianshu.com/p/353c314d3335?from=singlemessage&isappinstalled=0)
++ 
