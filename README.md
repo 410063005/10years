@@ -71,6 +71,8 @@
 
 [003-内存优化技巧](android/performance/003-app-mem-opt.md)
 
+[006-常用性能分析工具](android/performance/006-perf-tools.md)
+
 ## 代码
 [值得一读的代码](android/code.md)
 
