@@ -77,7 +77,7 @@ Options:
 + 查看帮助，如何导航
 + 如何分析已有数据
 + 检查 frames 和 alerts
-+ 
++ 如何添加向 systrace report 添加 flag
 
 一个深入的问题：
 
@@ -88,11 +88,29 @@ Options:
 
 [使用Systrace分析UI性能 - 简书](https://www.jianshu.com/p/b492140a555f)
 
-# CPU Profiler
+# Traceview 和 CPU Profiler
+
+> Traceview is deprecated. If you're using Android Studio 3.2 or later, you should instead use CPU Profiler to inspect .trace files captured by instrumenting your app with the Debug class, record new method traces, save .trace files, and inspect real-time CPU usage of your app's processes.
+
+Traceview 是用于图形化显示 `Debug` 类生成的 tracing 日志( `.trace` 文件 )的工具。`Debug` 生成的 `.trace` 日志非常精确，因为可以在代码中指定什么时候进行 trace。不过Android Studio 3.2 之后 [Traceview](https://developer.android.com/studio/profile/traceview) 已被 CPU Profiler 取代。
+
+```java
+Debug.startMethodTracing()
+...
+Debug.stopMethodTracing()
+```
+
+默认日志位置：`/sdcard/Android/data/<package_name>/files/dmtrace.trace`
+
+打开日志：Profiler > Session > Load from file
 
 
 [CPU profiler](https://developer.android.com/studio/profile/cpu-profiler.html)
 
-# Trace
-
 [generate trace logs](https://developer.android.com/studio/profile/generate-trace-logs.html)
+
+
+# dmtracedump
+[dmtracedump](https://developer.android.com/studio/command-line/dmtracedump) 以树状图的形式显示方法调用过程。
+
+注意：dmtracedump 依赖 graphviz。Mac上可以通过 `brew` 安装： `brew install graphviz`
