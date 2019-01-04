@@ -1,23 +1,9 @@
-
 - [systrace](#systrace)
-    - [简介](#简介)
-    - [基本用法](#基本用法)
-    - [高级话题](#高级话题)
-    - [参考](#参考)
-- [2. Installation](#2-installation)
-- [3. Usage](#3-usage)
-    - [3.1. Insert TOC](#31-insert-toc)
-    - [3.2. Insert Header Number Sections](#32-insert-header-number-sections)
-- [4. Configuration](#4-configuration)
-    - [4.1. Default Settings](#41-default-settings)
-    - [4.2. Unique Settings](#42-unique-settings)
-- [5. Contributors](#5-contributors)
-- [6. What's New?](#6-whats-new)
-- [7. Question](#7-question)
-- [8. License](#8-license)
-- [9. Links](#9-links)
+  + [简介](#简介)
+  + [基本用法](#基本用法)
+  + [高级话题](#高级话题)
+  + [参考](#参考)
 
-<!-- /TOC -->
 
 # systrace
 ## 简介
