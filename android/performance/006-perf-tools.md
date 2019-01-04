@@ -1,5 +1,5 @@
 
-- [systrace](#1-systrace)
+- [systrace](#systrace)
     - [简介](#简介)
     - [基本用法](#基本用法)
     - [高级话题](#高级话题)
