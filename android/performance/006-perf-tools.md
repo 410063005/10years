@@ -121,6 +121,16 @@ Options:
 
 见 [理解和使用systrace | 风中老狼的博客](https://maoao530.github.io/2017/02/06/systrace/)
 
+如何在 release 版本中开启 systrace 功能？
+
+Application的`attachBaseContext` 中添加如下代码：
+
+```
+Class<?> trace = Class.forName("android.os.Trace");
+Method setAppTracingAllowed = trace.getDeclaredMethod("setAppTracingAllowed", boolean.class);
+setAppTracingAllowed.invoke(null, true);
+```
+
 ## 参考
 
 + [systrace  |  Android Developers](https://developer.android.com/studio/command-line/systrace)
