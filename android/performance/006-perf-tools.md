@@ -100,12 +100,19 @@ Options:
 ## demo
 [手把手教你使用Systrace（一） - 知乎](https://zhuanlan.zhihu.com/p/27331842)
 
+[面试Tip之Android优化工具Systrace - 掘金](https://juejin.im/post/5b3cce09e51d45198651069f)
+
+无法代码控制开始和结束怎么办?
+
+> 我们可以用自定义Trace Label解决；Android SDK中提供了`android.os.Trace#beginSection`和`android.os.Trace#endSection` 这两个接口；我们可以在代码中插入这些代码来分析某个特定的过程；比如我们觉得Fragment的onCreateView过程有问题，那就在`onCreateView` 中加上代码：
+
+> 比如你要分析App的冷启动过程，那就在Application类的attachBaseContext调用`Trace.beginSection("Boot Procedure")`，然后在App首页的`onWindowFocusChanged` 或者你认为别的合适的启动结束点调用`Trace.endSection`就可以到启动过程的信息；比如下图是我的Label：
 
 ## 高级话题
 
 [systrace](https://source.android.google.cn/devices/tech/debug/systrace)
 
-[ftrace](https://source.android.google.cn/devices/tech/debug/ftrace)
+[ftrace](https:/e.android.google.cn/devices/tech/debug/ftrace)
 
 一个深入的问题：
 
