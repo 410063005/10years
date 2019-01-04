@@ -1,5 +1,6 @@
 
 # systrace
+## 简介
 systrace的功能包括跟踪系统的I/O操作、内核工作队列、CPU负载以及Android各个子系统的运行状况等。在Android平台中，它主要由3部分组成：
 
 + 内核部分：Systrace利用了Linux Kernel中的ftrace功能。所以，如果要使用systrace的话，必须开启kernel中和ftrace相关的模块。
@@ -7,6 +8,8 @@ systrace的功能包括跟踪系统的I/O操作、内核工作队列、CPU负载
 + 数据分析工具：Android提供一个systrace.py（python脚本文件，位于Android SDK目录 `/sdk/platform-tools/systrace` 中，其内部将调用atrace程序）用来配置数据采集的方式（如采集数据的标签、输出文件名等）和收集ftrace统计数据并生成一个结果网页文件供用户查看。
 
 [理解和使用systrace | 风中老狼的博客](https://maoao530.github.io/2017/02/06/systrace/)
+
+## 基本用法
 
 > The systrace command allows you to collect and inspect timing information across all processes running on your device at the system level.
 > systrace combines data from the Android kernel, such as the CPU scheduler, disk activity, and app threads, to generate an HTML report
@@ -87,12 +90,20 @@ Options:
 + 检查 frames 和 alerts
 + 如何添加向 systrace report 添加 flag
 
+## 高级话题
+
+[systrace](https://source.android.google.cn/devices/tech/debug/systrace)
+
+[ftrace](https://source.android.google.cn/devices/tech/debug/ftrace)
+
 一个深入的问题：
 
 + systrace 的工作原理？
 + `Trace` 类的工作原理
 
 见 [理解和使用systrace | 风中老狼的博客](https://maoao530.github.io/2017/02/06/systrace/)
+
+## 参考
 
 + [systrace  |  Android Developers](https://developer.android.com/studio/command-line/systrace)
 + [使用Systrace分析UI性能 - 简书](https://www.jianshu.com/p/b492140a555f)
