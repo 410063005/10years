@@ -1,6 +1,7 @@
 - [systrace](#systrace)
   + [简介](#简介)
   + [基本用法](#基本用法)
+  + [demo](#demo)
   + [高级话题](#高级话题)
   + [参考](#参考)
 
@@ -95,6 +96,10 @@ Options:
 + 如何分析已有数据
 + 检查 frames 和 alerts
 + 如何添加向 systrace report 添加 flag
+
+## demo
+[手把手教你使用Systrace（一） - 知乎](https://zhuanlan.zhihu.com/p/27331842)
+
 
 ## 高级话题
 
