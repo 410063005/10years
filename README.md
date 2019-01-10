@@ -86,45 +86,7 @@
 ## ssh
 [001-ssh登录常见问题](linux/ssh/001-ssh-login.md)
 
----
+# 工具
 
-pip3 install ss
-
-ss -p 8080 -k password -m rc4-md5 -d start
-
-```
-vi /etc/ss.json
-
-{
-  "server": "0.0.0.0",
-  "server_port": 8080,
-  "local_port": 1080,
-  "password": "123456",
-  "timeout": 600,
-  "method": "rc4-md5"
-}
-
-ss -c /etc/ss.json -d start
-```
-
-
-easy_install AnkiServer
-mkdir Anki
-cd Anki
-cp /usr/local/lib/python2.7/dist-packages/AnkiServer-2.0.6-py2.7.egg/examples/example.ini production.ini
-vi producion.ini
-
-host= 10.XX.XX.XX  #自己服务器的地址
-
-allowed_hosts=0.0.0.0 #允许同步的客户端ip地址，使用0.0.0.0表示允许任何ip地址连接
-
-添加用户
-
-ankiserverctl.py adduser username
-
-调试模式启动
-
-ankiserverctl.py debug [configfile]
-
-正常启动
-ankiserverctl.py start [cofigfile]
++ [ss](tools.md)
++ [Anki](tools.md)
