@@ -50,3 +50,81 @@ First initializer block that prints hello
 Second property: 5
 Second initializer block that prints 5
 ```
+ 
+# @JvmOverloads 注解
+
+如果对不带缺省参数的方法使用 `@JvmOverloads`，会有如下警告：
+
+`@JvmOverloads has no effect for methods without default argments`
+
+`@JvmOverloads` 对缺省参数到底有什么影响呢？看下面的例子，有两个类：
+
++ `A`，构造方法不使用 `@JvmOverloads` 注解 
++ `B`，构造方法使用 `@JvmOverloads` 注解 
+
+```kotlin
+class A constructor(val a: Int = 0, val b: Int = 0) 
+```
+
+```kotlin
+class B @JvmOverloads constructor(val a : Int = 0, val b : Int = 0)
+```
+
+二者生成的字节码有所不同。将生成的字节码转换成对应的 Java 代码分别如下：
+
+(转换方法：Idea > Tools > Show Kotlin Bytecode > Decompile)
+
+![](jvmoverrides.png)
+
+```java
+public final class A {
+   private final int a;
+   private final int b;
+
+   ...
+   public A(int a, int b) {
+      this.a = a;
+      this.b = b;
+   }
+
+   public A() {
+      this(0, 0, 3, (DefaultConstructorMarker)null);
+   }
+```
+
+```java
+public final class B {
+   private final int a;
+   private final int b;
+
+   ...
+
+   @JvmOverloads
+   public B(int a, int b) {
+      this.a = a;
+      this.b = b;
+   }
+   @JvmOverloads
+   public B(int a) {
+      this(a, 0, 2, (DefaultConstructorMarker)null);
+   }
+
+   @JvmOverloads
+   public B() {
+      this(0, 0, 3, (DefaultConstructorMarker)null);
+   }
+
+   ...
+```
+
+区别在于：`B` 类多出了不带参数的构造方法和带一个参数的构造方法。
+
+所以 `@JvmOverloads` 可以为 Kotlin 与 Java 代码交互带来一些方便。举个例子，自定义 `View`：
+
+```kotlin
+class MyView @JvmOverloads constructor(context: Context,
+    attributes: AttributeSet? = null, defStyleAttr: Int = 0)
+    : View(context, attributes, defStyleAttr) {}
+```
+
+这样写是不是方便很多？
