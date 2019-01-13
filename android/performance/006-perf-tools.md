@@ -160,7 +160,28 @@ Debug.stopMethodTracing()
 [generate trace logs](https://developer.android.com/studio/profile/generate-trace-logs.html)
 
 
-# dmtracedump
+# dm
+tracedump
 [dmtracedump](https://developer.android.com/studio/command-line/dmtracedump) 以树状图的形式显示方法调用过程。
 
 注意：dmtracedump 依赖 graphviz。Mac上可以通过 `brew` 安装： `brew install graphviz`
+
+# 查看内存限制
+
+查看 dalvik 的 heap size 限制：
+
+`adb shell getprop | grep dalvik.vm.heapgrowthlimit`
+
+查看 ram 的使用情况：
+
+`adb shell cat /proc/meminfo`
+
+查看 app 的内存使用：
+
+`adb shell dumpsys meminfo + packagename/pid`
+
+查看进程内存信息：
+
+`adb shell procrank`
+
+参考自 [Android进程的内存管理分析 - yulongfei的专栏 - CSDN博客](https://blog.csdn.net/gemmem/article/details/8920039)
