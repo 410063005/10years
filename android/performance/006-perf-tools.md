@@ -6,6 +6,43 @@
   + [参考](#参考)
 
 
+# MAT
+## 常见错误
+Mac 上启动 MAT 可能报错。一个[解决方法](https://blog.csdn.net/qq1263292336/article/details/78174219)如下，进入其所在的目录，指定 `-data` 参数运行：
+
+```
+> ./mat.app/Contents/MacOS
+> ./MemoryAnalyzer -data dump
+```
+
+MAT 无法直接打开从 Android 设备上导出的 hprof 文件：
+
+```
+Error opening heap dump 'memory-20190120T134854.hprof'. Check the error log for further details.
+Error opening heap dump 'memory-20190120T134854.hprof'. Check the error log for further details.
+Unknown HPROF Version (JAVA PROFILE 1.0.3) (java.io.IOException)
+Unknown HPROF Version (JAVA PROFILE 1.0.3)
+```
+
+使用 `Android/sdk/platform-tools/hprof-conv` 进行转换
+
+```
+hprof-conv original.hprof 
+```
+
+常用术语
+
++ GC Root
++ 可达性
++ 引用类型，Reference queque
++ Shallow Heap，Retained Heap
++ Dominator Tree
++ 正则式查找
++ OQL
++ 内存快照对比
+
+
+
 # systrace
 ## 简介
 systrace的功能包括跟踪系统的I/O操作、内核工作队列、CPU负载以及Android各个子系统的运行状况等。在Android平台中，它主要由3部分组成：
