@@ -73,6 +73,8 @@
 
 [006-常用性能分析工具](android/performance/006-perf-tools.md)
 
+[007-进程](android/performance/007-process.md)
+
 ## 代码
 [值得一读的代码](android/code.md)
 
