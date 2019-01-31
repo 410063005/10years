@@ -1,4 +1,13 @@
 
+# 图片压缩
+[pngquant — lossy PNG compressor](https://pngquant.org/)
+
+[ImageOptim — better Save for Web](https://imageoptim.com/mac)
+
+[TinyPNG](https://tinypng.com/)
+
+[gruntjs/grunt-contrib-imagemin](https://github.com/gruntjs/grunt-contrib-imagemin)
+
 # ss
 
 参考自 [Mac 端如何配置 ss – 冰冰的小屋](http://16bing.com/2017/02/18/mac-shadowsocks/)
