@@ -38,3 +38,26 @@ android {
     }
 }
 ```
+---
+问题现象：强制使用 gcc 编译时 提示 "CMake Error: CMAKE_C_COMPILER not set, after EnableLanguage"
+
+```groovy
+android {
+
+    defaultConfig {
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++11"
+                arguments "-DANDROID_TOOLCHAIN=gcc"
+            }
+        }
+    }
+}
+```
+
+> GCC is no longer supported. It will be removed in NDK r18.
+
+问题原因：最新版本的 NDK 中移除了 GCC，而这个项目是旧项目，它使用 GCC 编译。尝试使用 clang 编译，但各种报错，放弃。
+
+解决办法： 下载 [NDK r17c](https://developer.android.com/ndk/downloads/older_releases#ndk-17c-downloads)，解压到 <SDK>/ndk-bundle 目录中
+
