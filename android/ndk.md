@@ -10,3 +10,31 @@
 问题原因：新版本的NDK与3.0及以前旧版的Android Gradle plugin插件不兼容
 
 解决办法：升级 Android Gradle plugin 版本
+
+---
+
+问题现象：报错 "> ABIs [armeabi] are not supported for platform. Supported ABIs are [arm64-v8a, armeabi-v7a, x86, x86_64]."
+
+解决办法：
+
+```groovy
+android {
+    defaultConfig {
+        ndk {
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a'
+        }
+    }
+}
+```
+
+修改为：
+
+```groovy
+android {
+    defaultConfig {
+        ndk {
+            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+        }
+    }
+}
+```
