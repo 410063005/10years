@@ -59,5 +59,9 @@ android {
 
 问题原因：最新版本的 NDK 中移除了 GCC，而这个项目是旧项目，它使用 GCC 编译。尝试使用 clang 编译，但各种报错，放弃。
 
-解决办法： 下载 [NDK r17c](https://developer.android.com/ndk/downloads/older_releases#ndk-17c-downloads)，解压到 <SDK>/ndk-bundle 目录中
+解决办法： 
 
++ 方法一 - 下载 [NDK r17c](https://developer.android.com/ndk/downloads/older_releases#ndk-17c-downloads)，解压到 <SDK>/ndk-bundle 目录中
++ 方法二 - Android Studio - File - Project Structure - SDK Location - Android NDK location，在这里设置 NDK 17c 的路径
+
+(原本自己在 ndk-bundle 中下载的是 r16 版本，但貌似 Android Studio 自动下载了一个最新的 NDK 包，导致出现上述问题)
