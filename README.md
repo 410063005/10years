@@ -80,7 +80,12 @@
 ## 代码
 [值得一读的代码](android/code.md)
 
+## Gradle
+
+[001-使用私有库](android/gradle/use-maven-local.md)
+
 ## 未归类
+
 
 # Linux
 ## 常用工具
