@@ -43,10 +43,16 @@ mvn install:install-file \
 
 配置本地 maven 库后就能正常引用 `xxx.jar` 了。
 
-```
+```groovy
 buildscript {
     repositories {
         mavenLocal()
     }
 }
+```
+
+如何引用另一个 gradle 文件
+
+```groovy
+apply from 'other.gradle'
 ```
