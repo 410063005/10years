@@ -84,6 +84,8 @@
 
 [001-使用私有库](android/gradle/use-maven-local.md)
 
+[002-依赖冲突问题](android/gradle/gradle-dep-problem.md)
+
 ## 未归类
 
 
