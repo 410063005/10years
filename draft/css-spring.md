@@ -1,5 +1,11 @@
 css-spring.md
 ========
+我很好奇为什么 Android Support Library 中会提供单独的 Spring Animation 库。Spring Animaiton 有何特别之处，不能写一个 Interpolator 来实现弹性动画吗？
+
+这篇文章很好地解答了我的疑问。原来 Spring Animation 是一个偏微分方程。
+
+---
+
 原文地址：https://medium.com/@dtinth/spring-animation-in-css-2039de6e1a03
 
 CSS 动画要么使用 CSS 提供的[默认的时间函数](http://www.w3.org/TR/2013/WD-css3-transitions-20131119/#transition-timing-function-property)，要么使用 [cub](http://cubic-bezier.com/) 创建自定义的时间函数以自定义动画。
