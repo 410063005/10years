@@ -1,4 +1,23 @@
 
+# curl
+
+curl 发送 POST 请求
+
+```
+curl -X POST http://aaa/bbb -H @appmap.prop -d '
+{
+    "a": 1,
+    "b", 2
+}
+'
+```
+
+curl 上传文件
+
+```
+curl http://ip:8000/log/ -F "file=@average.png" -v
+```
+
 # 图片压缩
 [pngquant — lossy PNG compressor](https://pngquant.org/)
 

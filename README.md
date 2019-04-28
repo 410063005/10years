@@ -17,29 +17,14 @@
 
 ## Web 开发
 
-[001-mysql](python/django/001-mysql.md)
-
-[002-django](python/django/002-django.md)
-
-[003-跨域问题](python/django/003-django-csrf.md)
-
-[Python 2 和 Python 3 之间的差异](python/python2-vs-python3.md)
-
-[005-curl 的用法](python/curl.md)
+[README](python/README.md)
 
 ## 安装和配置
 
-[001-python2和python3共存](python/install/001-python2-python3.md)
-
-[002-pip](python/install/002-pip.md)
-
-[待分类](python/todo.md)
 
 # Android
 
 [001-关于WebView](android/001-webview.md)
-
-[002-Android常用库](android/002-android-lib.md)
 
 [003-Lint使用技巧](android/003-lint.md)
 
@@ -50,6 +35,8 @@
 
 ## 常用库
 [001-dagger](android/lib/001-dagger.md)
+
+[Android常用库](android/lib/README.md)
 
 
 ## Bitmap
@@ -77,8 +64,6 @@
 
 [007-进程](android/performance/007-process.md)
 
-## 代码
-[值得一读的代码](android/code.md)
 
 ## Gradle
 

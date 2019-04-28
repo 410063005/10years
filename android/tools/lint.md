@@ -169,7 +169,7 @@ dependencies {
 
 ## UnusedNamespace
 
-![](003-lint/4.png)
+![](../images/lint-4.png)
 
 > Unused namespace declarations take up space and require processing that is not necessary
 
@@ -178,26 +178,26 @@ dependencies {
 
 没有 id，没有 background 的无用子节点
 
-![](003-lint/5.png)
+![](../images/lint-5.png)
 
-![](003-lint/6.png)
+![](../images/lint-6.png)
 
 完全可以使用更轻量级的控件代替原来的 `LinearLayout`
 
-![](003-lint/7.png)
+![](../images/lint-7.png)
 
 ## Overdraw
 一类典型的过度绘制问题。Activity 的默认主题中设置了 `android:windowBackground`，而视觉设计图要求 Activity 的根布局有一个背景色 (不同于 `android:windowBackground` 的颜色)，引起过度绘制。
 
-![](003-lint/2.png)
+![](../images/lint-2.png)
 
 这类问题发生了 120 次。
 
-![](003-lint/1.png)
+![](../images/lint-1.png)
 
 解决办法很简单，基于默认主题重新创建一个无 `android:windowBackground` 的新的主题。对于 Activity 根布局有背景色的情况，使用新的主题而不是默认主题。
 
-![](003-lint/3.png)
+![](../images/lint-3.png)
 
 ## ObsoleteSdkInt
 
