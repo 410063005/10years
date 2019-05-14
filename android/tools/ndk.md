@@ -1,3 +1,36 @@
+# 速查表
+
+Android 项目中 NDK 编译配置：
+
+```
+android {
+    externalNativeBuild {
+        cmake {
+            version '3.10.2'
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }   
+}
+```
+
+CMakeLists.txt 基本配置：
+
+```
+cmake_minimum_required(VERSION 3.4.1)
+
+add_library(hello-jni SHARED
+            hello-jni.c)
+
+# Include libraries needed for hello-jni lib
+target_link_libraries(hello-jni
+                      android
+                      log)
+```
+
+创建字符串：`(*env)->NewStringUTF(env, "Hello from JNI !  Compiled with ABI ")`
+
+[CMake 用法速查](https://developer.android.com/ndk/guides/cmake)
+
 # 常见错误
 问题现象： Android Studio 3.2，打开一个旧工程，编译提示"No toolchains found in the NDK toolchains folder for ABI with prefix: mips64el-linux-android"
 
