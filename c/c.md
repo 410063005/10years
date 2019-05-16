@@ -190,6 +190,15 @@ int* addr = &a;
 printf("address of a is %p\n", addr);
 ```
 
+当 `const` 结合指针使用时要特别小心 [ref](https://randu.org/tutorials/c/pointers.php)。
+
+```
+  const int * const ip;  /* The pointer *ip is const and what it points at is const */
+        int * const ip;  /* The pointer *ip is const              */
+  const int *       ip;  /* What *ip is pointing at is const      */
+        int *       ip;  /* Nothing is const                      */
+```
+
 ## 字符串
 C语言中字符串以 `\0` (即 null 结尾)
 
@@ -205,6 +214,8 @@ C语言中字符串以 `\0` (即 null 结尾)
 ## typedef
 
 typedef 用于为数据类型定义新的名字，增加程序的可读性。
+
+## 
 
 # 学习心得
 作为已有多年开发经验的工程师，不能像新手一样学习。
