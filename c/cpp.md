@@ -89,6 +89,8 @@ Hook 的在 `libandroid_runtime.so` 中的名字是
 
 
 # 参考
+[C++ Quick Syntax Reference](http://kali.azc.uam.mx/clc/03_docencia/licenciatura/i_programacion/Libro_C++.pdf)
+
 [utkuufuk/cpp-quick-reference: C++ Quick Reference](https://github.com/utkuufuk/cpp-quick-reference)
 
 [Android changes for NDK developers](https://android.googlesource.com/platform/bionic/+/master/android-changes-for-ndk-developers.md)
