@@ -1,3 +1,14 @@
+# git
+
+找出被删除文件的历史记录
+
+```
+// 不知道文件名或文件路径时
+git log --all --full-history -- **/thefile.*
+// 知道文件名或文件路径时
+git log --all --full-history -- <path-to-file>
+```
+
 
 # curl
 
