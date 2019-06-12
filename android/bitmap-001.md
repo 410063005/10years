@@ -1,4 +1,4 @@
-聊聊 Android 系统是如何缓存 Drawable 的。
+聊聊 Android 系统是如何缓存 Drawable，以及缓存机制对创建 Bitmap 的影响。
 
 ---
 
@@ -100,3 +100,36 @@ public class BitmapDrawable extends Drawable {
 
 `BitmapDrawable` 作为一种 drawable，也由上述缓存来管理。这可以解释为什么一个布局中多次加载一个图片资源时，只会产生一个 `Bitmap` 而不是多个 `Bitmap`。
 
+布局如下：
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/image1"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/are_u_kidding" />
+
+    <ImageView
+        android:id="@+id/image2"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="10dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/are_u_kidding" />
+</LinearLayout>
+```
+
+UI 看到了两个 ImageView 均加载了图片：
+
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/layout-with-two-imageview.jpg" width="540" height="1140">
+
+而实际上只有一个 Bitmap 实例：
+
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/layout-load-only-one-bitmap.jpg" width="540" height="1140">
