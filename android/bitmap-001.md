@@ -267,4 +267,4 @@ UI 上看到了两个 ImageView 均加载了图片：
 
 另外要注意的就是 UI 销毁引起对象之间引用关系的变化。UI 销毁后再也没有对 BitmapState 的强引用，而 DrawableCache 只持有 BitmapState 的弱引用，所以下次 GC 时 BitmapState 及 Bitmap 也会被回收。
 
-<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmapdrawable-gc.png" width="60%" height="60%" >
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmapdrawable-gc.png" width="80%" height="80%" >
