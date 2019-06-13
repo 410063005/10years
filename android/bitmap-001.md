@@ -1,21 +1,36 @@
 聊聊 Android 系统是如何缓存 Drawable，以及缓存机制对创建 Bitmap 的影响。
 
 ---
+如果在一个布局文件直接引用 drawable 资源，类似这样：
+
+```xml
+<ImageView android:src="@drawable/demo">
+```
+
+Android 会按下面的时序图进行处理：
 
 ![load-drawable-for-layout.png](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/load-drawable-for-layout.png)
 
 ![load-drawable-from-cache](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/load-drawable-from-cache.png)
 
-cache 过程发生在 `ResoucesImpl` 的两个方法中。
+其中有几个重要方法包括：
 
-+ loadDrawable
-+ cacheDrawable
++ LayoutInflator.inflate()
++ TypedArray.getValueForDensity()
++ Resources.loadDrawable()
 
-`ResoucesImpl` 使用 `DrawableCache` 缓存数据。
+我们主要看 `Resources.loadDrawable()`。
 
-BitmapDrawable
++ `ResoucesImpl` 是 `Resources` 的实现类
++ `ResoucesImpl` 使用 `DrawableCache` 缓存数据
++ 缓存过程发生在 `ResoucesImpl` 的 `loadDrawable()` 和 `cacheDrawable()` 方法中
 
 # DrawableCache 类
+先上类图：
+
+![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/drawable-cache-class.png)
+
+部分代码如下：
 
 ```java
 /**
@@ -59,20 +74,107 @@ abstract class ThemedResourceCache<T> {
 
 缓存策略：
 
-+ 被缓存对象是 drawable.constantState 而不是 drawable 本身
-+ 被缓存对象无数量限制
++ 被 DrawableCache 缓存的对象是 Drawable.ConstantState 而不是 Drawable 本身
 + 只持有被缓存对象的 WeakReference
++ 无缓存数量限制
++ 单独缓存 ColorDrawable 
 + 缓存类型细分为
-  + preloaded cache - 包括 PreloadedDrawables 和 PreloadedColorDrawables
-  + drawable cache - 包括 not themed, null theme, theme-specific
+  + Preloaded cache - 包括 PreloadedDrawables 和 PreloadedColorDrawables
+  + DrawableCache - 包括 not themed, null theme, theme-specific
+
+由于 preload 过程只在 zygote 进程启动时发生一次，所以接下来的分析中我们几乎可以忽略 preloaded cache 而只需要关注 drawable cache。
 
 # loadDrawable 方法
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/load-drawable-flow.png)
 
-+ `useCache` 为 true 时，从 drawable cache 中获取 drawable，获取成功则返回，否则下一步
-+ 从 preloaded cache 中获取 constantState，获取成功则由 constantState 创建 drawable，否则由 `loadDrawableForCookie` 加载
-+ `useCache` 为 true 时，将新创建的 drawable 保存到 drawable cache
++ `useCache` 为 true 时，从 DrawableCache 中获取 Drawable，获取成功则返回，否则下一步
++ 从 Preloaded cache 中获取 ConstantState，获取成功则由 ConstantState 创建 Drawable，否则由 `loadDrawableForCookie()` 加载 Drawable
++ `useCache` 为 true 时，将新创建的 Drawable 保存到 DrawableCache
+
+`loadDrawableForCookie()` 是这里的关键。如果 DrawableCache 和 Preloaded cache 中都找不到我们的目标 Drawable，并且目标 Drawable 也不是 ColorDrawable (ColorDrawable 非常简单，直接 `new` 创建就行了)，就该 `loadDrawableForCookie()` 方法出场了。 它的代码如下：
+
+```java
+public class ResourcesImpl {
+    // A stack of all the resourceIds already referenced when parsing a resource. This is used to
+    // detect circular references in the xml.
+    // Using a ThreadLocal variable ensures that we have different stacks for multiple parallel
+    // calls to ResourcesImpl
+    private final ThreadLocal<LookupStack> mLookupStack =
+            ThreadLocal.withInitial(() -> new LookupStack());
+            
+    private Drawable loadDrawableForCookie(@NonNull Resources wrapper, @NonNull TypedValue value,
+            int id, int density) {
+        ...
+        LookupStack stack = mLookupStack.get();
+        try {
+            // Perform a linear search to check if we have already referenced this resource before.
+            if (stack.contains(id)) {
+                throw new Exception("Recursive reference in drawable");
+            }
+            stack.push(id);
+            try {
+                if (file.endsWith(".xml")) {
+                    final XmlResourceParser rp = loadXmlResourceParser(
+                            file, id, value.assetCookie, "drawable");
+                    dr = Drawable.createFromXmlForDensity(wrapper, rp, density, null);
+                    rp.close();
+                } else {
+                    final InputStream is = mAssets.openNonAsset(
+                            value.assetCookie, file, AssetManager.ACCESS_STREAMING);
+                    AssetInputStream ais = (AssetInputStream) is;
+                    dr = decodeImageDrawable(ais, wrapper, value);
+                }
+            } finally {
+                stack.pop();
+            }
+        } catch (Exception | StackOverflowError e) {
+            ...
+        }            
+    }               
+
+    private static class LookupStack {
+
+        // Pick a reasonable default size for the array, it is grown as needed.
+        private int[] mIds = new int[4];
+        private int mSize = 0;
+
+        public void push(int id) {
+            mIds = GrowingArrayUtils.append(mIds, mSize, id);
+            mSize++;
+        }
+
+        public boolean contains(int id) {
+            for (int i = 0; i < mSize; i++) {
+                if (mIds[i] == id) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void pop() {
+            mSize--;
+        }
+    }
+}
+```
+
+`loadDrawableForCookie()` 要解决的问题有三个：
+
++ 如何防止循环引用问题
++ 如何加载 XML 文件中定义的 Drawable
++ 如何加载 XML 文件以外的 Drawable
+
+TODO 如何将如何防止循环引用问题解释清楚
+
+后两个问题比较常规，这里只给出一个流程。
+
+```
+XML -> ||XML Parser|| -> Drawable
+
+Assets -> AssetInputStream -> ImageDecoder.Source -> ||ImageDecoder|| -> Drawable
+```
 
 # cacheDrawable 方法
 
@@ -126,10 +228,30 @@ public class BitmapDrawable extends Drawable {
 </LinearLayout>
 ```
 
-UI 看到了两个 ImageView 均加载了图片：
+UI 上看到了两个 ImageView 均加载了图片：
 
 <img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/layout-with-two-imageview.jpg" width="540" height="1140">
 
-而实际上只有一个 Bitmap 实例：
+使用 BitmapProfiler 分析发现实际上创建了一个 Bitmap 实例：
 
 <img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/layout-load-only-one-bitmap.jpg" width="540" height="1140">
+
+结合之前分析来看一下 BitmapDrawable 和 Bitmap 的创建过程。
+
+对于第一个 ImageView：
+
++ 经过一系列调用，最终调用到 `ResoucesImpl.loadDrawable()`
++ 查找 DrawableCache，未找到
++ 查找 Preloaded cache，未找到
++ 是否 ColorDrawable？
+  + 是，直接创建 ColorDrawable
+  + 否，调用 loadDrawableForCookie() 创建 Drawable。这一步创建了一个 BitmapDrawable 以及一个 Bitmap
++ 缓存上一步创建的 Drawable
++ 返回 Drawable
+
+对于第二个 ImageView：
+
++ 经过一系列调用，最终调用到 `ResoucesImpl.loadDrawable()`
++ 查找 DrawableCache，找到。注意这一步找到的是 ConstantState
++ 由 ConstantState 创建 Drawable。这一步创建了一个 BitmapDrawable，但是并没有创建 Bitmap
++ 返回 Drawable
