@@ -1,101 +1,297 @@
 
 http://km.oa.com/articles/show/408363?kmref=home_headline
 
-# 总体流程
+# 生
 
++ Bitmap.createBitmap()
++ Bitmap.copy()
++ BitmapFactory.decodeResource()
++ 加载布局文件 BitmapDrawable
++ 加载 drawable 资源文件 Resources.getDrawable()
+
+流程图
+
+![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-overview.png)
+
+## 图片解码
+[BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233)
+
+```cpp
+BitmapFactory.nativeDecodeFileDescriptor()
+BitmapFactory.nativeDecodeAsset()
+BitmapFactory.nativeDecodeByteArray()
+BitmapFactory.nativeDecodeAsset()
 ```
-java: BitmapFactory.decodeXXX() ->
-cpp:  BitmapFactory.doDecode() ->
-      SkCodec::MakeFromStream 
-      SkAndroidCodec::MakeFromCodec
-      Choose decodeAllocator
-      codec->getAndroidPixel
 
-```
+待解码的资源种类一共有四种：
 
++ FileDescriptor
++ Asset
++ ByteArray
++ DecodeAsset
 
+上面的四个方法先进行资源转换成与 `SkStreamRewindable` 兼容的类型，然后统一交由 `deDecode()` 解码。
 
-#  BitmapFactory.doDecode() 
+![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-convert-resource.png)
 
-+ Set default values for the options parameters.
+`deDecode()` 流程可以总结为：
+
 + Update with options supplied by the client.
 + Create the codec.
-+ Determine the output size.
-+ Scale
-+ Choose decodeAllocator 
++ Handle sampleSize. (BitmapFactory.Options.inSampleSize)
++ Set the decode colorType.
++ Handle scale.  (BitmapFactory.Options.inScaled)
++ Handle reuseBitmap (BitmapFactory.Options.inBitmap)
++ Choose decodeAllocator
++ Construct a color table
++ AllocPixels 
 + Use SkAndroidCodec to perform the decode.
 + Create the java bitmap
 
-[BitmapFactory](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/pie-release/core/jni/android/graphics/BitmapFactory.cpp)
+### 分配内存
 
-# SkBitmap
+如何 Choose decodeAllocator。考虑因素包括：
 
-[SkBitmap](https://android.googlesource.com/platform/external/skia/+/jb-mr1-dev/include/core/SkBitmap.h)
++ 是否复用 Bitmap - inBitmap
++ 是否缩放 Bitmap - inScaled
++ 是否GPU中的 Bitmap - isHardware
 
-[SkBitmap](https://android.googlesource.com/platform/external/skia/+/7cf0e9e/src/core/SkBitmap.cpp)
+SkBitmap::Allocator* decodeAllocator。可选的 Allocator 包括：
 
-# SkCodec 
-[codec](https://github.com/google/skia/tree/master/src/codec)
++ ScaleCheckingAllocator - 复用 Bitmap 且需要缩放
++ RecyclingPixelAllocator - 复用 Bitmap 但不需要缩放
++ SkBitmap::HeapAllocator - 不复用 Bitmap，但需要缩放或者是GPU Bitmap
++ HeapAllocator - 如果不满足上述几种情况，就使用缺省的 Allocator
 
-类结构：
+decodeAllocator 和 color table 准备好了之后，调用 `SkBitmap.tryAllocPixels()` 为 Bitmap 分配内存。[源码链接](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#444)：
 
-```
-SkNoncopyable
-
-SkCodec
-
-SkAndroidCodec
-
-SkSampledCodec SkAndroidCodecAdapter
-```
-
-SkAndroidCodec 依赖 SkCodec：
-
-```
-/**
- *  Abstract interface defining image codec functionality that is necessary for
- *  Android.
- */
-class SK_API SkAndroidCodec : SkNoncopyable {
-private:
-    const SkImageInfo               fInfo;
-    const ExifOrientationBehavior   fOrientationBehavior;
-    std::unique_ptr<SkCodec>        fCodec;
-};
+```cpp
+static jobject doDecode() {
+    ...
+    SkBitmap decodingBitmap;
+    if (!decodingBitmap.setInfo(bitmapInfo) ||
+            !decodingBitmap.tryAllocPixels(decodeAllocator, colorTable.get())) {
+        // SkAndroidCodec should recommend a valid SkImageInfo, so setInfo()
+        // should only only fail if the calculated value for rowBytes is too
+        // large.
+        // tryAllocPixels() can fail due to OOM on the Java heap, OOM on the
+        // native heap, or the recycled javaBitmap being too small to reuse.
+        return nullptr;
+    }
+    ...
+}
 ```
 
-[选择 SkCodec](https://github.com/google/skia/blob/master/src/codec/SkCodec.cpp)
+[SkBitmap::tryAllocPixels](https://github.com/google/skia/blob/master/src/core/SkBitmap.cpp#L213) 源码如下：
 
-+ SkBmpCodec
-+ SkGifCodec
-+ SkJpegCodec
-+ SkPngCodec
-+ SkWebpCodec
+```cpp
+bool SkBitmap::tryAllocPixels(Allocator* allocator) {
+    HeapAllocator stdalloc;
 
-SkPngCodec 依赖 [libpng](https://android.googlesource.com/platform/external/libpng/+/refs/heads/master)
-
-[选择 SkAndroidCodec](https://github.com/google/skia/blob/master/src/codec/SkAndroidCodec.cpp#L84)
-
+    if (nullptr == allocator) {
+        allocator = &stdalloc;
+    }
+    return allocator->allocPixelRef(this);
+}
 ```
-std::unique_ptr<SkAndroidCodec> codec;
-codec = SkAndroidCodec::MakeFromCodec(std::move(c));
-SkCodec::Result result = codec->getAndroidPixels(decodeInfo, decodingBitmap.getPixels(),
+
+以 `SkBitmap::HeapAllocator` 为例，`allocator->allocPixelRef()` 流程如下：
+
++ [SkBitmap::tryAllocPixels](https://github.com/google/skia/blob/master/src/core/SkBitmap.cpp#L213)
++ [SkBitmap::HeapAllocator::allocPixelRef](https://github.com/google/skia/blob/master/src/core/SkBitmap.cpp#L368)
++ [SkMallocPixelRef::MakeAllocate](https://github.com/google/skia/blob/master/src/core/SkMallocPixelRef.cpp#L57)
++ [sk_calloc_canfail](https://github.com/google/skia/blob/master/include/private/SkMalloc.h#L66)
++ [sk_malloc_flags](https://github.com/google/skia/blob/master/src/ports/SkMemory_malloc.cpp#L66)
+
+最终会调用 `malloc()` 分配指定大小的内存。部分关键代码如下：
+
+```cpp
+// SkMallocPixelRef.cpp
+sk_sp<SkPixelRef> SkMallocPixelRef::MakeAllocate(const SkImageInfo& info, size_t rowBytes) {
+    ...
+    void* addr = sk_calloc_canfail(size);
+
+	...
+    
+}
+
+// SkMalloc.h
+static inline void* sk_calloc_canfail(size_t size) {
+#if defined(IS_FUZZING_WITH_LIBFUZZER)
+    // The Libfuzzer environment is very susceptible to OOM, so to avoid those
+    // just pretend we can't allocate more than 200kb.
+    if (size > 200000) {
+        return nullptr;
+    }
+#endif
+    return sk_malloc_flags(size, SK_MALLOC_ZERO_INITIALIZE);
+}
+
+// SkMemory_malloc.cpp
+void* sk_malloc_flags(size_t size, unsigned flags) {
+    void* p;
+    if (flags & SK_MALLOC_ZERO_INITIALIZE) {
+        p = calloc(size, 1);
+    } else {
+        p = malloc(size);
+    }
+    if (flags & SK_MALLOC_THROW) {
+        return throw_on_failure(size, p);
+    } else {
+        return p;
+    }
+}
+```
+
+如果沿着缺省的 `HeapAllocator` 走，则`allocator->allocPixelRef()` 流程如下：
+
++ [SkBitmap::tryAllocPixels](https://github.com/google/skia/blob/master/src/core/SkBitmap.cpp#L213)
++ [HeapAllocator::allocPixelRef](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Graphics.cpp#616)
++ [android::Bitmap::allocateHeapBitmap](https://android.googlesource.com/platform/frameworks/base/+/master/libs/hwui/hwui/Bitmap.cpp#79)
+
+可以看到最终也会分配指定大小的内存：
+
+```cpp
+static sk_sp<Bitmap> allocateHeapBitmap(size_t size, const SkImageInfo& info, size_t rowBytes) {
+    void* addr = calloc(size, 1);
+    if (!addr) {
+        return nullptr;
+    }
+    return sk_sp<Bitmap>(new Bitmap(addr, size, info, rowBytes));
+}
+```
+
+### 解码
+
+![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-sk-codec-class.png)
+
++ [SkAndroidCodec::MakeFromStream()](https://github.com/google/skia/blob/master/src/codec/SkAndroidCodec.cpp#L78) 根据图片格式选择一个合适的 `SkCodec`，比如为 PNG 图片选择 `SkPngCodec`
++ `SkAndroidCodec::MakeFromStream()` 创建 `SkAndroidCodec`，`SkAndroidCodec` 是上一步创建的 `SkCodec` 的代理
+  + PNG，JPEG，GIF，BMP 等格式时创建 `SkSampledCodec`
+  + WEBP 格式时创建 `SkAndroidCodecAdapter`
++ 调用 `SkAndroidCodec.getAndroidPixels()` 解码
+
+```cpp
+static jobject doDecode() {
+    ...
+    SkCodec::Result result = codec->getAndroidPixels(decodeInfo, decodingBitmap.getPixels(),
             decodingBitmap.rowBytes(), &codecOptions);
+                
+    ...
+}
 ```
 
-+ PNG, JPEG, GIF, BMP - 使用 SkSampledCodec
-+ WEBP - 使用 SkAndroidCodecAdapter
+这里不妨以 PNG 图片为例来看一下接下来的过程。
 
-# SkBitmap::Allocator
+![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-decode.png)
 
-+ HeapAllocator - 缺省的 decodeAllocator
-+ ScaleCheckingAllocator
-+ RecyclingPixelAllocator
-+ SkBitmap::HeapAllocator
+```cpp
+SkCodec::Result SkPngCodec::onGetPixels(const SkImageInfo& dstInfo, void* dst,
+                                        size_t rowBytes, const Options& options,
+                                        int* rowsDecoded) {
+    Result result = this->initializeXforms(dstInfo, options);
+    if (kSuccess != result) {
+        return result;
+    }
 
-# recyle
+    if (options.fSubset) {
+        return kUnimplemented;
+    }
 
-Bitmap.recycle()
+    this->allocateStorage(dstInfo);
+    this->initializeXformParams();
+    return this->decodeAllRows(dst, rowBytes, rowsDecoded);
+}
+
+```
+
+## 创建Java对象
+
+
+```cpp
+// BitmapFactory.cpp
+static jobject doDecode() {
+    SkBitmap decodingBitmap;    
+    ...
+    SkCodec::Result result = ...
+    SkBitmap outputBitmap;
+    outputBitmap.swap(decodingBitmap);                
+    ...
+    // now create the java bitmap
+    return bitmap::createBitmap(env, defaultAllocator.getStorageObjAndReset(),
+            bitmapCreateFlags, ninePatchChunk, ninePatchInsets, -1);    
+}
+```
+
+```cpp
+// Bitmap.cpp
+jobject createBitmap(JNIEnv* env, Bitmap* bitmap,
+        int bitmapCreateFlags, jbyteArray ninePatchChunk, jobject ninePatchInsets,
+        int density) {
+    bool isMutable = bitmapCreateFlags & kBitmapCreateFlag_Mutable;
+    bool isPremultiplied = bitmapCreateFlags & kBitmapCreateFlag_Premultiplied;
+    // The caller needs to have already set the alpha type properly, so the
+    // native SkBitmap stays in sync with the Java Bitmap.
+    assert_premultiplied(bitmap->info(), isPremultiplied);
+    BitmapWrapper* bitmapWrapper = new BitmapWrapper(bitmap);
+    jobject obj = env->NewObject(gBitmap_class, gBitmap_constructorMethodID,
+            reinterpret_cast<jlong>(bitmapWrapper), bitmap->width(), bitmap->height(), density,
+            isMutable, isPremultiplied, ninePatchChunk, ninePatchInsets);
+    if (env->ExceptionCheck() != 0) {
+        ALOGE("*** Uncaught exception returned from Java call!\n");
+        env->ExceptionDescribe();
+    }
+    return obj;
+}
+```
+
+TODO
+
+如何理解 defaultAllocator.getStorageObjAndReset
+
+# 死
+
++ Bitmap.recycle()
++ NativeAllocationRegistry
+
+```java
+
+    /**
+     * Free the native object associated with this bitmap, and clear the
+     * reference to the pixel data. This will not free the pixel data synchronously;
+     * it simply allows it to be garbage collected if there are no other references.
+     * The bitmap is marked as "dead", meaning it will throw an exception if
+     * getPixels() or setPixels() is called, and will draw nothing. This operation
+     * cannot be reversed, so it should only be called if you are sure there are no
+     * further uses for the bitmap. This is an advanced call, and normally need
+     * not be called, since the normal GC process will free up this memory when
+     * there are no more references to this bitmap.
+     */
+    public void recycle() {
+        if (!mRecycled && mNativePtr != 0) {
+            if (nativeRecycle(mNativePtr)) {
+                // return value indicates whether native pixel object was actually recycled.
+                // false indicates that it is still in use at the native level and these
+                // objects should not be collected now. They will be collected later when the
+                // Bitmap itself is collected.
+                mNinePatchChunk = null;
+            }
+            mRecycled = true;
+        }
+    }
+```
+
+```java
+    Bitmap(long nativeBitmap, int width, int height, int density,
+            boolean isMutable, boolean requestPremultiplied,
+            byte[] ninePatchChunk, NinePatch.InsetStruct ninePatchInsets) {
+        ...
+        NativeAllocationRegistry registry = new NativeAllocationRegistry(
+            Bitmap.class.getClassLoader(), nativeGetNativeFinalizer(), nativeSize);
+        registry.registerNativeAllocation(this, nativeBitmap);
+        ...           
+    }             
+```                
 
 # 参考
 [core/jni/android/graphics/BitmapFactory.cpp - platform/frameworks/base.git - Git at Google](https://android.googlesource.com/platform/frameworks/base.git/+/master/core/jni/android/graphics/BitmapFactory.cpp)
