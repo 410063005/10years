@@ -28,7 +28,7 @@ Android 会按下面的时序图进行处理：
 # DrawableCache 类
 先上类图：
 
-![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/drawable-cache-class.png)
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/drawable-cache-class.png" width="60%" height="60%" >
 
 部分代码如下：
 
@@ -86,13 +86,18 @@ abstract class ThemedResourceCache<T> {
 
 # loadDrawable 方法
 
-![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/load-drawable-flow.png)
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/load-drawable-flow.png" width="60%" height="60%" >
 
 + `useCache` 为 true 时，从 DrawableCache 中获取 Drawable，获取成功则返回，否则下一步
 + 从 Preloaded cache 中获取 ConstantState，获取成功则由 ConstantState 创建 Drawable，否则由 `loadDrawableForCookie()` 加载 Drawable
 + `useCache` 为 true 时，将新创建的 Drawable 保存到 DrawableCache
 
-`loadDrawableForCookie()` 是这里的关键。如果 DrawableCache 和 Preloaded cache 中都找不到我们的目标 Drawable，并且目标 Drawable 也不是 ColorDrawable (ColorDrawable 非常简单，直接 `new` 创建就行了)，就该 `loadDrawableForCookie()` 方法出场了。 它的代码如下：
+`loadDrawableForCookie()` 是这里的关键。如果 
+
++ DrawableCache 和 Preloaded cache 中都找不到我们的目标 Drawable，
++ 并且目标 Drawable 也不是 ColorDrawable (ColorDrawable 非常简单，直接 `new` 创建就行了)
+
+就该 `loadDrawableForCookie()` 方法出场了。它的代码如下：
 
 ```java
 public class ResourcesImpl {
@@ -200,7 +205,7 @@ public class BitmapDrawable extends Drawable {
 }
 ```
 
-`BitmapDrawable` 作为一种 drawable，也由上述缓存来管理。这可以解释为什么一个布局中多次加载一个图片资源时，只会产生一个 `Bitmap` 而不是多个 `Bitmap`。
+`BitmapDrawable` 作为一种 Drawable，也由上述缓存来管理。如果一个布局中多次加载一个图片资源时，只会产生一个 `Bitmap` 而不是多个 `Bitmap`。下面来验证并分析一下。
 
 布局如下：
 
@@ -230,11 +235,11 @@ public class BitmapDrawable extends Drawable {
 
 UI 上看到了两个 ImageView 均加载了图片：
 
-<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/layout-with-two-imageview.jpg" width="540" height="1140">
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/layout-with-two-imageview.jpg" width="40%" height="40%">
 
 使用 BitmapProfiler 分析发现实际上创建了一个 Bitmap 实例：
 
-<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/layout-load-only-one-bitmap.jpg" width="540" height="1140">
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/layout-load-only-one-bitmap.jpg" width="40%" height="40%">
 
 结合之前分析来看一下 BitmapDrawable 和 Bitmap 的创建过程。
 
@@ -245,7 +250,7 @@ UI 上看到了两个 ImageView 均加载了图片：
 + 查找 Preloaded cache，未找到
 + 是否 ColorDrawable？
   + 是，直接创建 ColorDrawable
-  + 否，调用 loadDrawableForCookie() 创建 Drawable。这一步创建了一个 BitmapDrawable 以及一个 Bitmap
+  + 否，调用 loadDrawableForCookie() 创建 Drawable。注意：**这一步创建了一个 BitmapDrawable 以及一个 Bitmap**
 + 缓存上一步创建的 Drawable
 + 返回 Drawable
 
@@ -253,5 +258,13 @@ UI 上看到了两个 ImageView 均加载了图片：
 
 + 经过一系列调用，最终调用到 `ResoucesImpl.loadDrawable()`
 + 查找 DrawableCache，找到。注意这一步找到的是 ConstantState
-+ 由 ConstantState 创建 Drawable。这一步创建了一个 BitmapDrawable，但是并没有创建 Bitmap
++ 由 ConstantState 创建 Drawable。注意：**这一步创建了一个 BitmapDrawable，但是并没有创建 Bitmap**
 + 返回 Drawable
+
+最终你在 UI 上看到了两个 BitmapDrawable，但背后只有一个 Bitmap。用图画出来，它们关系如下：
+
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmapdrawable-bitmap-relationship.png" width="60%" height="60%" >
+
+另外要注意的就是 UI 销毁引起对象之间引用关系的变化。UI 销毁后再也没有对 BitmapState 的强引用，而 DrawableCache 只持有 BitmapState 的弱引用，所以下次 GC 时 BitmapState 及 Bitmap 也会被回收。
+
+<img src="https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmapdrawable-gc.png" width="60%" height="60%" >
