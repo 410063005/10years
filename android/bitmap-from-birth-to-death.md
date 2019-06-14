@@ -561,9 +561,9 @@ void SkBitmap::setPixelRef(sk_sp<SkPixelRef> pr, int dx, int dy) {
 }
 ```
 
-如果 `fPixelRef` 原来指向的那个 `SkMallocPixelRef` 对象引用数为0时，其析构方法被调用，最终触发 [sk_free_releaseproc()](https://github.com/google/skia/blob/master/src/core/SkMallocPixelRef.cpp#L33) 方法回收内存。
+`fPixelRef` 被置空后它原来指向的那个 `SkMallocPixelRef` 对象引用数变成0时，`~SkMallocPixelRef()` 析构方法被调用，最终触发 [sk_free_releaseproc()](https://github.com/google/skia/blob/master/src/core/SkMallocPixelRef.cpp#L33) 方法回收内存。
 
-注：分配内存过程中，`sk_free_releaseproc` 作为 `SkMallocPixelRef()` 构造方法的 `SkMallocPixelRef::ReleaseProc` 参数
+这里的 `sk_free_releaseproc` 在之间的分配内存过程中作为 `SkMallocPixelRef()` 构造方法的 `SkMallocPixelRef::ReleaseProc` 参数传进来的，它负责最终的内存回收。
 
 ```cpp
 // SkMemory_malloc.cpp https://github.com/google/skia/blob/master/src/ports/SkMemory_malloc.cpp#L66
