@@ -1,11 +1,10 @@
 
-http://km.oa.com/articles/show/408363?kmref=home_headline
 
 Bitmap 是 Android 应用中的内存大户，网上有不少关于如何计算 Bitmap 占用内存大小的文章。个人觉得 Bitmap 内存大小很重要，但其内存是如何被管理(分配和回收)同样也很重要。所以本文试图从整体上看一下 Bitmap 创建和回收过程。我力求理清其主脉络，聚焦内存分配与回收，所以忽略掉许多技术细节。可能存在疏漏欢迎批评指正。
 
 <!--more-->
 
-Bitmap 占用内存多的因素其像素数据(pixels)大。像素数据的存储在不同 Android 版本之间有所变化。具体来说：
+Bitmap 占用内存多是因为其像素数据(pixels)大。像素数据的存储在不同 Android 版本之间有所变化。具体来说：
 
 + Android 2.3 (API Level 10) 以及之前 - 像素数据保存在 native heap
 + Android 3.0 到 Android 7.1 (API Level 11-26) - 像素数据保存在 java heap
