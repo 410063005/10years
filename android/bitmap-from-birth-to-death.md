@@ -4,13 +4,13 @@ Bitmap 是内存大户，所以非常有必要了解其内存是如何被分配�
 
 <!--more-->
 
-Bitmap 占内存多是因为其像素数据(pixels)大。像素数据的存储方式在不同 Android 版本之间有所变化，所以相关代码也有不少差异。具体来说：
+Bitmap 占内存多是因为其像素数据(pixels)大。像素数据的存储方式在不同 Android 版本之间有所变化，具体来说：
 
 + Android 2.3 (API Level 10) 以及之前 - 像素数据保存在 native heap
 + Android 3.0 到 Android 7.1 (API Level 11-26) - 像素数据保存在 java heap
 + Android 8.0 以及之后 - 像素数据保存在 native heap
 
-本文分析基于 [Android 8.0 源码](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp)分析。
+像素数据的存储方式变化导致不同 Android 版本间 Bitmap 相关的代码可能有较大差异。本文分析基于 [Android 8.0 源码](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp)分析。
 
 # 总览 
 
@@ -25,29 +25,29 @@ Bitmap 占内存多是因为其像素数据(pixels)大。像素数据的存储�
 
 先说通过 API 创建 Bitmap。Android SDK 中创建 Bitmap 的 API 超级多，整理后可以分成三种情况：
 
-+ 从无到有 **创建** Bitmap - Bitmap.createBitmap()
-+ 从已有的 Bitmap **拷贝** - Bitmap.copy()
-+ 从已有的资源 **解码**
++  **创建** Bitmap - Bitmap.createBitmap() 是在内存中从无到有地创建 Bitmap
++  **拷贝** Bitmap - Bitmap.copy() 从已有的 Bitmap 拷贝得到一个新的 Bitmap
++  **解码** - 从文件或字节数组等资源解码得到到 Bitmap
   + BitmapFactory.decodeResource()
   + [ImageDecoder.decodeBitmap](https://developer.android.com/reference/android/graphics/ImageDecoder)，这个是 Android 9.0 新加进来的
 
-除了 API 创建 Bitmap，加载布局或资源文件时也可能会创建 Bitmap。
+除了 API 创建 Bitmap，加载某些布局或资源文件时也会创建 Bitmap。
 
-加载这个布局文件时会创建一个 Bitmap：
+例如，加载如下这个布局文件时会创建一个 Bitmap：
 
 ```xml
 <ImageView android:src="@drawable/resId">
 ```
 
-加载 resId 这个资源时会创建一个 Bitmap (这里假设 resId 对应的是一个图片资源)：
+假如 resId 对应的是一张图片，则加载 resId 这个资源时会创建一个 Bitmap：
 
 ```java
 Drawable drawable = Resources.getDrawable(resId)
 ```
 
-在 App 中有效管理 Bitmap 并不是个简单活，多数项目会依赖 [Glide](https://github.com/bumptech/glide) 或 [Picosso](https://github.com/square/picasso) 等成熟的第三方库来加载图片，而非直接系统 API。第三方库的使用让 Bitmap 的创建更加多样化。
+由于加载和管理 Bitmap 的复杂性，实际项目中往往不是直接调用上述 API 来创建 Bitmap，而是依赖 [Glide](https://github.com/bumptech/glide) 或 [Picosso](https://github.com/square/picasso) 等成熟的第三方图片库。第三方库图片库让开发过程变得轻松，但同时也让 Bitmap 的创建更加多样和复杂。
 
-虽然创建 Bitmap 的方式很多，但最终殊途同归。见下图：
+这样看来，创建 Bitmap 的方式太多，简直让人头大。但好在无论哪种创建方式，最终殊途同归。见下图：
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-overview.png)
 
