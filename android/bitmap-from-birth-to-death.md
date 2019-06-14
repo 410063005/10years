@@ -1,72 +1,66 @@
 
 
-Bitmap 是 Android 应用中的内存大户，网上有不少关于如何计算 Bitmap 占用内存大小的文章。个人觉得 Bitmap 内存大小很重要，但其内存是如何被管理(分配和回收)同样也很重要。所以本文试图从整体上看一下 Bitmap 创建和回收过程。我力求理清其主脉络，聚焦内存分配与回收，所以忽略掉许多技术细节。可能存在疏漏欢迎批评指正。
+Bitmap 是内存大户，所以非常有必要了解其内存是如何被分配和回收的。本文试图理清创建和销毁 Bitmap 整个过程的主脉络，并将重点聚焦于内存分配与回收，所以有意忽略掉一些细节。水平有限，如有疏漏，欢迎批评指正。
 
 <!--more-->
 
-Bitmap 占用内存多是因为其像素数据(pixels)大。像素数据的存储在不同 Android 版本之间有所变化。具体来说：
+Bitmap 占内存多是因为其像素数据(pixels)大。像素数据的存储方式在不同 Android 版本之间有所变化，所以相关代码也有不少差异。具体来说：
 
 + Android 2.3 (API Level 10) 以及之前 - 像素数据保存在 native heap
 + Android 3.0 到 Android 7.1 (API Level 11-26) - 像素数据保存在 java heap
 + Android 8.0 以及之后 - 像素数据保存在 native heap
 
-像素数据的存储方式的变化，导致 Bitmap 内存管理也有所变化。所以相关代码在不同 Android 版本之间差异有时非常大。本文分析基于 [Android 8.0 源码](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp)分析。
+本文分析基于 [Android 8.0 源码](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp)分析。
 
-# 总览
+# 总览 
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-arch.png)
 
 # 创建
+创建 Bitmap 的方式特别多，
 
-Android SDK 中创建 Bitmap 的 API 超级多，整理后可以分成三种情况：
++ 你可以通过 SDK 提供的 API 来创建 Bitmap
++ 加载布局或资源时可能导致创建 Bitmap
++ 一些第三方库会创建 Bitmap
+
+先说通过 API 创建 Bitmap。Android SDK 中创建 Bitmap 的 API 超级多，整理后可以分成三种情况：
 
 + 从无到有 **创建** Bitmap - Bitmap.createBitmap()
 + 从已有的 Bitmap **拷贝** - Bitmap.copy()
 + 从已有的资源 **解码**
   + BitmapFactory.decodeResource()
-  + [ImageDecoder.decodeBitmap](https://developer.android.com/reference/android/graphics/ImageDecoder)
+  + [ImageDecoder.decodeBitmap](https://developer.android.com/reference/android/graphics/ImageDecoder)，这个是 Android 9.0 新加进来的
 
-[ImageDecoder](https://developer.android.com/reference/android/graphics/ImageDecoder) 是 Android 9.0 新加的类。不明白为什么官方要加这个类，还嫌以前的接口不够乱么。
+除了 API 创建 Bitmap，加载布局或资源文件时也可能会创建 Bitmap。
 
-以上说的会直接创建 Bitmap 的 API，实际上加载布局或资源文件时也可能会创建 Bitmap：
+加载这个布局文件时会创建一个 Bitmap：
 
 ```xml
 <ImageView android:src="@drawable/resId">
 ```
 
+加载 resId 这个资源时会创建一个 Bitmap (这里假设 resId 对应的是一个图片资源)：
+
 ```java
 Drawable drawable = Resources.getDrawable(resId)
 ```
 
-Bitmap 是一个"重"资源且管理 Bitmap 并不是个简单活：
+在 App 中有效管理 Bitmap 并不是个简单活，多数项目会依赖 [Glide](https://github.com/bumptech/glide) 或 [Picosso](https://github.com/square/picasso) 等成熟的第三方库来加载图片，而非直接系统 API。第三方库的使用让 Bitmap 的创建更加多样化。
 
-+ 解码过程耗CPU - 中低端手机上解码一张中等大小(752x942)的PNG图片耗时超过 20ms。更多测试数据见 [Bitmap 解码性能测试](https://www.sunmoonblog.com/2019/05/31/bitmap-decode-perf/)
-+ 像素数据耗内存 - 一张大小 4048x3036 的图片占用内存约 12MB
-
-官方直接在 [Managing Bitmap Memory](https://developer.android.com/topic/performance/graphics/manage-memory) 这个文档的开头就提醒开发者没事不要瞎折腾：
-
-> Note: For most cases, we recommend that you use the Glide library to fetch, decode, and display bitmaps in your app. Glide abstracts out most of the complexity in handling these and other tasks related to working with bitmaps and other images on Android. For information about using and downloading Glide, visit the Glide repository on GitHub.
-
-所以多数项目会使用 [Glide](https://github.com/bumptech/glide) 或 [Picosso](https://github.com/square/picasso) 加载图片，而非系统提供的 API。第三方库的使用让 Bitmap 的创建过程变得更加复杂。
-
-上面啰嗦了这么多，总结就是看起来创建 Bitmap 的方式特别多：
-
-+ 你可以通过N多的 API 来创建 Bitmap
-+ 加载布局或资源时可能也创建了 Bitmap
-+ 第三方库也会创建 Bitmap
-
-但稍加分析就能发现无论哪种方式创建 Bitmap 最终都会走到相同的方法调用。见下图：
+虽然创建 Bitmap 的方式很多，但最终殊途同归。见下图：
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-overview.png)
 
-可以粗略总结成四个步骤：
+总结成四个步骤：
 
 + 资源转换 - `nativeDecodeXXX()` 负责将 Java 层传来的不同类型的资源转换成可解码的数据类型
 + 内存分配 - 准确地说这一步是内存管理，但简单起见我们只关注内存分配。分配的内存用于图片解码
 + 图片解码 - Skia 将实际的解码工作交由第三方库，第三库的解码结果填在上一步分配的内存中
 + 创建 Java 对象 - 将填有解码数据的内存块包装成 Java 层的 `android.graphics.Bitmap` 对象
 
-上图中 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 是核心，其关键步骤如下：
+可以看到，无论使用哪种创建创建 Bitmap，除了资源转换和内存分配稍有不同之外，最终会都会图片解码并创建 Java 对象。
+
+图片解码由 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 函数完成，它是核心。关键步骤包括：
 
 1. Update with options supplied by the client.
 2. Create the codec.
@@ -91,14 +85,14 @@ Java 层的待解码资源包括：
 + Stream
 + FileDescriptor
 
-到了 JNI 层待解码的资源被重新分类成四种，包括：
+在 JNI 层待解码的资源被重新分类成四种，包括：
 
 + FileDescriptor
 + Asset
 + ByteArray
 + DecodeAsset
 
-`BitmapFactory` 提供四个方法将对应的资源转换成 `SkStreamRewindable` 兼容的数据类型，然后统一交由 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233)。 
+`BitmapFactory` 提供四个方法将对应的资源转换成 `SkStreamRewindable` 兼容的数据类型，之后由 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 统一处理。 
 
 ```cpp
 nativeDecodeFileDescriptor()
@@ -110,16 +104,16 @@ nativeDecodeAsset()
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-convert-resource.png)
 
 ### 内存分配
-前面提到 `BitmapFactory.doDecode()` 的第7步是选择 decodeAllocator。decodeAllocator 负责具体如何分配内存。有不同种类的 Allocator：
+前面提到 `BitmapFactory.doDecode()` 的第7步是选择 decodeAllocator。decodeAllocator 负责具体如何分配内存。有不同种类的 decodeAllocator：
 
-+ [ScaleCheckingAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#144) - 复用 Bitmap 且需要缩放
-+ [RecyclingPixelAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/GraphicsJNI.h#171) - 复用 Bitmap 但不需要缩放
-+ [SkBitmap::HeapAllocator](https://github.com/google/skia/blob/master/include/core/SkBitmap.h#L1119) - 不复用 Bitmap，但需要缩放或者是GPU Bitmap
-+ [HeapAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/GraphicsJNI.h#125) - 如果不满足上述几种情况，就使用缺省的 Allocator。注：其父类是 [SkBRDAllocator](https://github.com/google/skia/blob/master/include/android/SkBRDAllocator.h)
++ [ScaleCheckingAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#144)
++ [RecyclingPixelAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/GraphicsJNI.h#171)
++ [SkBitmap::HeapAllocator](https://github.com/google/skia/blob/master/include/core/SkBitmap.h#L1119)
++ [HeapAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/GraphicsJNI.h#125)
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-createion-allocator-classes.png)
 
-如何选择 Allocator 需要考虑因素包括：
+如何选择 decodeAllocator 需要考虑因素包括：
 
 + 是否复用 Bitmap - inBitmap
 + 是否缩放 Bitmap - inScaled
@@ -130,14 +124,10 @@ nativeDecodeAsset()
 |是            |是            |-            |ScaleCheckingAllocator|
 |是            |否            |-            |RecyclingPixelAllocator|
 |否            |是            |是           |SkBitmap::HeapAllocator|
-|-             |-            |-            |HeapAllocator|
+|-             |-            |-            |HeapAllocator(缺省的Allocator)|
 
-说明：
 
-+ 不复用 Bitmap，但需要缩放或者是 GPU Bitmap 时使用 SkBitmap::HeapAllocator
-+ 缺省使用 HeapAllocator
-
-选好 Allocator 后，使用 Allocator 进行内存分配。代码如下：
+接下来使用选定的 decodeAllocator 分配内存，代码如下：
 
 ```cpp
 // BitmapFactory.cpp
@@ -172,7 +162,7 @@ bool SkBitmap::tryAllocPixels(Allocator* allocator) {
 
 复用 Bitmap 时分配内存的情况相对简单，这里略过。主要看不复用 Bitmap 的场景。
 
-以一个不复用 Bitmap 但需要缩放的 Bitmap 为例，对应的 `Allocator` 是 `SkBitmap::HeapAllocator`。那么实际的 `allocPixelRef()` 流程是这样的：
+以一个不复用 Bitmap 但需要缩放的 Bitmap 为例，对应的 `Allocator` 是 `SkBitmap::HeapAllocator`。实际的 `allocPixelRef()` 流程是这样的：
 
 + [SkBitmap::tryAllocPixels](https://github.com/google/skia/blob/master/src/core/SkBitmap.cpp#L213)
 + [SkBitmap::HeapAllocator::allocPixelRef](https://github.com/google/skia/blob/master/src/core/SkBitmap.cpp#L368)
@@ -220,7 +210,7 @@ void* sk_malloc_flags(size_t size, unsigned flags) {
 }
 ```
 
-以一个不复用 Bitmap 也不需要缩放的 Bitmap 为例，对应的 `Allocator` 是缺省的 `HeapAllocator`。那么实际的 `allocPixelRef()` 流程是这样的：
+以一个不复用 Bitmap 也不需要缩放的 Bitmap 为例，对应的 `Allocator` 是缺省的 `HeapAllocator`。实际的 `allocPixelRef()` 流程是这样的：
 
 + [SkBitmap::tryAllocPixels](https://github.com/google/skia/blob/master/src/core/SkBitmap.cpp#L213)
 + [HeapAllocator::allocPixelRef](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Graphics.cpp#616)
@@ -262,7 +252,7 @@ private:
 };
 ```
 
-无论如何，分配出来的内存块最终都由 `SkBitmap` 来持有(实际上内存块是由 [SkBitmap 的 SkPixmap](https://github.com/google/skia/blob/master/src/core/SkPixmap.cpp) 持有，我们忽略这里的细节)。
+无论如何，分配出来的内存块最终都由 `SkBitmap` 来持有(准确来说内存块是由 [SkBitmap 的 SkPixmap](https://github.com/google/skia/blob/master/src/core/SkPixmap.cpp) 持有，忽略这个细节)。
 
 注意以下代码中的 `dst->setPixelRef(std::move(pr), 0, 0);`，内存分配过程到这里结束。
 
