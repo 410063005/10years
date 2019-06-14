@@ -262,7 +262,9 @@ private:
 };
 ```
 
-无论如何，分配出来的内存块最终都由 `SkBitmap` 来持有(实际上是由 [SkBitmap 的 SkPixmap](https://github.com/google/skia/blob/master/src/core/SkPixmap.cpp)，我们忽略这里的细节)。注意这里的 `dst->setPixelRef(std::move(pr), 0, 0);`
+无论如何，分配出来的内存块最终都由 `SkBitmap` 来持有(实际上内存块是由 [SkBitmap 的 SkPixmap](https://github.com/google/skia/blob/master/src/core/SkPixmap.cpp) 持有，我们忽略这里的细节)。
+
+注意以下代码中的 `dst->setPixelRef(std::move(pr), 0, 0);`，内存分配过程到这里结束。
 
 ```cpp
 // SkBitmap.cpp https://github.com/google/skia/blob/master/src/core/SkBitmap.cpp#L368
@@ -315,7 +317,7 @@ void SkBitmap::setPixelRef(sk_sp<SkPixelRef> pr, int dx, int dy) {
 }
 ```
 
-注：native 层的 Bitmap 类似乎是在 [hwui库](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/libs/hwui/hwui/Bitmap.h#45)中定义的
+注：native 层的 Bitmap 类比较让人疑惑，一直找不到其具体代码，似乎是在 [hwui库](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/libs/hwui/hwui/Bitmap.h#45)中定义的
 
 ### 图片解码
 在 Skia 中 `SkCodec` 代表解码器，解码器的类层次结构如下：
