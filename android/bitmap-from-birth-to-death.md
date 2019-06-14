@@ -28,7 +28,7 @@ Android SDK 中创建 Bitmap 的 API 超级多，整理后可以分成三种情�
 
 [ImageDecoder](https://developer.android.com/reference/android/graphics/ImageDecoder) 是 Android 9.0 新加的类。不明白为什么官方要加这个类，还嫌以前的接口不够乱么。
 
-以上说的会直接创建 Bitmap 的 API，实际上加载布局或资源文件，也会创建 Bitmap：
+以上说的会直接创建 Bitmap 的 API，实际上加载布局或资源文件时也可能会创建 Bitmap：
 
 ```xml
 <ImageView android:src="@drawable/resId">
@@ -38,24 +38,24 @@ Android SDK 中创建 Bitmap 的 API 超级多，整理后可以分成三种情�
 Drawable drawable = Resources.getDrawable(resId)
 ```
 
-Bitmap 是一个"重"资源：
+Bitmap 是一个"重"资源且管理 Bitmap 并不是个简单活：
 
 + 解码过程耗CPU - 中低端手机上解码一张中等大小(752x942)的PNG图片耗时超过 20ms。更多测试数据见 [Bitmap 解码性能测试](https://www.sunmoonblog.com/2019/05/31/bitmap-decode-perf/)
 + 像素数据耗内存 - 一张大小 4048x3036 的图片占用内存约 12MB
 
-且管理 Bitmap 并不是个简单活。于是官方直接在 [Managing Bitmap Memory](https://developer.android.com/topic/performance/graphics/manage-memory) 这个文档的开头就提醒开发者没事不要瞎折腾：
+官方直接在 [Managing Bitmap Memory](https://developer.android.com/topic/performance/graphics/manage-memory) 这个文档的开头就提醒开发者没事不要瞎折腾：
 
 > Note: For most cases, we recommend that you use the Glide library to fetch, decode, and display bitmaps in your app. Glide abstracts out most of the complexity in handling these and other tasks related to working with bitmaps and other images on Android. For information about using and downloading Glide, visit the Glide repository on GitHub.
 
-所以多数项目会使用 [Glide](https://github.com/bumptech/glide) 或 [Picosso](https://github.com/square/picasso) 加载图片。而这些第三方库的使用，让 Bitmap 的创建过程变得更加复杂，至少看起来是这样的。
+所以多数项目会使用 [Glide](https://github.com/bumptech/glide) 或 [Picosso](https://github.com/square/picasso) 加载图片，而非系统提供的 API。第三方库的使用让 Bitmap 的创建过程变得更加复杂。
 
-上面啰嗦了这么多，意思是：
+上面啰嗦了这么多，总结就是看起来创建 Bitmap 的方式特别多：
 
 + 你可以通过N多的 API 来创建 Bitmap
 + 加载布局或资源时可能也创建了 Bitmap
 + 第三方库也会创建 Bitmap
 
-稍加分析就能发现无论哪种方式创建 Bitmap 最终都会走到相同的方法调用。见下图：
+但稍加分析就能发现无论哪种方式创建 Bitmap 最终都会走到相同的方法调用。见下图：
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-overview.png)
 
