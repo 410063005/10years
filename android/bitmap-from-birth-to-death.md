@@ -60,7 +60,7 @@ Drawable drawable = Resources.getDrawable(resId)
 
 可以看到，无论使用哪种创建创建 Bitmap，除了资源转换和内存分配稍有不同之外，最终会都会图片解码并创建 Java 对象。
 
-图片解码由 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 函数完成，它是核心。关键步骤包括：
+内存分配和图片解码由 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 函数完成。`doDecode()`是创建 Bitmap 的核心，其关键步骤包括：
 
 1. Update with options supplied by the client.
 2. Create the codec.
@@ -74,9 +74,11 @@ Drawable drawable = Resources.getDrawable(resId)
 10. Use SkAndroidCodec to perform the decode.
 11. Create the java bitmap
 
-我们稍后对其中分配内存相关部分(包括第7, 9, 10步)详细讨论。
+我们先简单说说资源转换，稍后详细讨论内存分配和图片解码(包括第7, 9, 10步)。
 
 ## 资源转换
+解码前的第一项工作是资源转换。
+
 Java 层的待解码资源包括：
 
 + File
@@ -85,14 +87,14 @@ Java 层的待解码资源包括：
 + Stream
 + FileDescriptor
 
-在 JNI 层待解码的资源被重新分类成四种，包括：
+在 JNI 层将待解码的资源重新分成四种，包括：
 
 + FileDescriptor
 + Asset
 + ByteArray
 + DecodeAsset
 
-`BitmapFactory` 提供四个方法将对应的资源转换成 `SkStreamRewindable` 兼容的数据类型，之后由 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 统一处理。 
+`BitmapFactory` 提供以下四个方法进行资源转换， 
 
 ```cpp
 nativeDecodeFileDescriptor()
@@ -103,31 +105,27 @@ nativeDecodeAsset()
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-convert-resource.png)
 
-### 内存分配
-前面提到 `BitmapFactory.doDecode()` 的第7步是选择 decodeAllocator。decodeAllocator 负责具体如何分配内存。有不同种类的 decodeAllocator：
+所有的资源都会转换成与 `SkStreamRewindable` 兼容的数据，这后这些数据交由 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 统一解码处理。 
 
-+ [ScaleCheckingAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#144)
-+ [RecyclingPixelAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/GraphicsJNI.h#171)
-+ [SkBitmap::HeapAllocator](https://github.com/google/skia/blob/master/include/core/SkBitmap.h#L1119)
-+ [HeapAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/GraphicsJNI.h#125)
+### 内存分配
+解码前的第二项工作是内存分配。
+
+`BitmapFactory.doDecode()` 的第7步是选择 decodeAllocator，由选定的 decodeAllocator 负责分配内存。有以下几种 decodeAllocator：
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-createion-allocator-classes.png)
 
-如何选择 decodeAllocator 需要考虑因素包括：
+选择 decodeAllocator 需要考虑这三个因素：是否复用已有 Bitmap，是否会缩放 Bitmap，是否是 Hardware Bitmap
 
-+ 是否复用 Bitmap - inBitmap
-+ 是否缩放 Bitmap - inScaled
-+ 是否 Hardware Bitmap - isHardware
+根据这些因素来选择 decodeAllocator 的策略如下：
 
-|是否复用 Bitmap|是否缩放 Bitmap|是否 Hardware Bitmap|Allocator类型|
+|是否复用已有 Bitmap|是否会缩放 Bitmap|是否是 Hardware Bitmap|Allocator类型|
 |--------------|--------------|-------------|------------|
-|是            |是            |-            |ScaleCheckingAllocator|
-|是            |否            |-            |RecyclingPixelAllocator|
-|否            |是            |是           |SkBitmap::HeapAllocator|
-|-             |-            |-            |HeapAllocator(缺省的Allocator)|
+|是            |是            |-            |[ScaleCheckingAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#144)|
+|是            |否            |-            |[RecyclingPixelAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/GraphicsJNI.h#171)|
+|否            |是            |是           |[SkBitmap::HeapAllocator](https://github.com/google/skia/blob/master/include/core/SkBitmap.h#L1119)|
+|-             |-            |-            |[HeapAllocator](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/GraphicsJNI.h#125) (缺省的Allocator)|
 
-
-接下来使用选定的 decodeAllocator 分配内存，代码如下：
+以下代码使用选定的 decodeAllocator 分配内存：
 
 ```cpp
 // BitmapFactory.cpp
@@ -157,10 +155,12 @@ bool SkBitmap::tryAllocPixels(Allocator* allocator) {
 }
 ```
 
+两个重点：
+
 + `BitmapFactory.doDecode()` 调用 `SkBitmap.tryAllocPixels()` 为 Bitmap 分配内存
 + `SkBitmap.tryAllocPixels()` 调用 `Allocator.allocPixelRef()` 为 Bitmap 分配内存
 
-复用 Bitmap 时分配内存的情况相对简单，这里略过。主要看不复用 Bitmap 的场景。
+复用 Bitmap 时分配内存的情况相对简单，所以略过。这里主要看不复用 Bitmap 的场景。
 
 以一个不复用 Bitmap 但需要缩放的 Bitmap 为例，对应的 `Allocator` 是 `SkBitmap::HeapAllocator`。实际的 `allocPixelRef()` 流程是这样的：
 
