@@ -317,21 +317,21 @@ void SkBitmap::setPixelRef(sk_sp<SkPixelRef> pr, int dx, int dy) {
 }
 ```
 
+<!--
 注：native 层的 Bitmap 类比较让人疑惑，一直找不到其具体代码，似乎是在 [hwui库](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/libs/hwui/hwui/Bitmap.h#45)中定义的
+-->
 
 ### 图片解码
 在 Skia 中 `SkCodec` 代表解码器，解码器的类层次结构如下：
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-sk-codec-class.png)
 
-Skia 将实际的解码工作交由第三方库。不同图片格式有各自对应的解码器。比如 PNG 图片由 `SkPngCodec` 解码。而 `SkPngCodec` 实际上是对 libpng 的封装。
+Skia 将实际的解码工作交由第三方库，不同图片格式有各自对应的解码器。比如 PNG 图片由 `SkPngCodec` 解码，而 `SkPngCodec` 实际上是对 libpng 的封装。
 
-前面提到过 `BitmapFactory.doDecode()` 的第2步是创建解码器，而第10步是调用该解码器进行解码。具体如下：
+前面提到 `BitmapFactory.doDecode()` 的第2步是创建解码器，第10步是调用该解码器进行解码。具体如下。
 
 + [SkCodec::MakeFromStream()](https://github.com/google/skia/blob/master/src/codec/SkCodec.cpp#L70) 根据图片格式选择一个合适的 `SkCodec`，比如为 PNG 图片选择 `SkPngCodec`
-+ [SkAndroidCodec::MakeFromStream()](https://github.com/google/skia/blob/master/src/codec/SkAndroidCodec.cpp#L78) 创建 `SkAndroidCodec`， 它是上一步创建的 `SkCodec` 的代理。`SkAndroidCodec` 的具体类型跟图片格式相关
-  + PNG，JPEG，GIF，BMP 等格式时创建 `SkSampledCodec`
-  + WEBP 格式时创建 `SkAndroidCodecAdapter`
++ [SkAndroidCodec::MakeFromStream()](https://github.com/google/skia/blob/master/src/codec/SkAndroidCodec.cpp#L78) 创建 `SkAndroidCodec`， 它是上一步创建的 `SkCodec` 的代理。`SkAndroidCodec` 的具体类型跟图片格式有关。PNG，JPEG，GIF，BMP 等格式时其类型是 `SkSampledCodec`，WEBP 格式时是 `SkAndroidCodecAdapter`
 + 调用 [SkAndroidCodec.getAndroidPixels()](https://github.com/google/skia/blob/master/src/codec/SkAndroidCodec.cpp#L357) 解码
 
 对于这段代码，不妨以 PNG 图片为例来看一下接下来的过程。
