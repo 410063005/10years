@@ -604,7 +604,7 @@ SkMallocPixelRef::~SkMallocPixelRef() {
 
 > On Android 2.3.3 (API level 10) and lower, using recycle() is recommended. If you're displaying large amounts of bitmap data in your app, you're likely to run into OutOfMemoryError errors. The recycle() method allows an app to reclaim memory as soon as possible.
 
-但实际上现在的 Android 应用中多数场景不必代码主动调用 `recycle()` 方法来释放 native 内存，并不会碰到文档中说的 "native memory is not released in a predictable manner" 问题。这是为何？秘密在于 [NativeAllocationRegistry](https://android.googlesource.com/platform/libcore/+/master/luni/src/main/java/libcore/util/NativeAllocationRegistry.java)
+但实际上现在的 Android 应用中多数场景代码不主动调用 `recycle()`， native 内存也能正确回收，并不会碰到文档中说的 Android 2.3.3 上 "native memory is not released in a predictable manner" 问题。这是为何？秘密在于 [NativeAllocationRegistry](https://android.googlesource.com/platform/libcore/+/master/luni/src/main/java/libcore/util/NativeAllocationRegistry.java)。
 
 > NativeAllocationRegistry 用于将 native 内存跟 Java 对象关联，并将它们注册到 Java 运行时。注册 Java 对象关联的 native 内存有几个好处：
 >
@@ -628,14 +628,14 @@ SkMallocPixelRef::~SkMallocPixelRef() {
 注意到 Bitmap 构造方法有如下操作：
 
 + 向 `NativeAllocationRegistry` 提供 `nativeGetNativeFinalizer()` 方法地址
-+ 将当前 Java 对象本身注册到 `NativeAllocationRegistry` ( Java 本身用于引用可达性检查，具体细节本文忽略)
++ 将当前 Java 对象本身注册到 `NativeAllocationRegistry` ( Java 对象用于引用可达性检查，不可达时 NativeAllocationRegistry 开始生效。具体细节本文忽略)
 + 将当前 Java 对象关联的 native 内存地址注册到 `NativeAllocationRegistry`
 
-当 Java 层 Bitmap 对象不可达后关联的 native 内存会由 `nativeGetNativeFinalizer()` 指定的方法来回收。
+当 Java 层 Bitmap 对象不可达后关联的 native 内存会由 `nativeGetNativeFinalizer()` 指定的方法来回收。一个简单的流程如下：
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-free-native-mem.png)
 
-Bitmap 指定由 [Bitmap_destruct()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp#864) 方法来回收 native 内存。
+对 Bitmap 而言，[Bitmap_destruct()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp#864) 方法被指定用来回收 native 内存。这个方法超级简单，相信你一眼能看明白。
 
 ```cpp
 static void Bitmap_destruct(BitmapWrapper* bitmap) {
@@ -647,11 +647,10 @@ static jlong Bitmap_getNativeFinalizer(JNIEnv*, jobject) {
 }
 ```
 
-[Cleaner](https://android.googlesource.com/platform/libcore/+/49965c1/ojluni/src/main/java/sun/misc/Cleaner.java)
+如果想了解更多细节，可以看 [Cleaner](https://android.googlesource.com/platform/libcore/+/49965c1/ojluni/src/main/java/sun/misc/Cleaner.java) 源码。
 
 # 总结
-
-TODO 图
+通过一步步分析，最终不难发现 Bitmap 本质上就是内存中的一块数据。所谓创建 Bitmap，不过是调用 `malloc()` 分配一块内存。而回收 Bitmap，不过是调用 `free()` 将之前的内存释放掉。
 
 # 参考
 + [如何管理 Bitmap 内存](https://developer.android.com/topic/performance/graphics/manage-memory.html)
