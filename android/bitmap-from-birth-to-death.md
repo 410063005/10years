@@ -135,7 +135,9 @@ nativeDecodeAsset()
 说明：
 
 + 不复用 Bitmap，但需要缩放或者是 GPU Bitmap 时使用 SkBitmap::HeapAllocator
-+ 缺省使用 Allocator
++ 缺省使用 HeapAllocator
+
+选好 Allocator 后，使用 Allocator 进行内存分配。代码如下：
 
 ```cpp
 // BitmapFactory.cpp
