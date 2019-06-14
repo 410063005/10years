@@ -334,7 +334,7 @@ Skia 将实际的解码工作交由第三方库，不同图片格式有各自对
 + [SkAndroidCodec::MakeFromStream()](https://github.com/google/skia/blob/master/src/codec/SkAndroidCodec.cpp#L78) 创建 `SkAndroidCodec`， 它是上一步创建的 `SkCodec` 的代理。`SkAndroidCodec` 的具体类型跟图片格式有关。PNG，JPEG，GIF，BMP 等格式时其类型是 `SkSampledCodec`，WEBP 格式时是 `SkAndroidCodecAdapter`
 + 调用 [SkAndroidCodec.getAndroidPixels()](https://github.com/google/skia/blob/master/src/codec/SkAndroidCodec.cpp#L357) 解码
 
-对于这段代码，不妨以 PNG 图片为例来看一下接下来的过程。
+不妨以 PNG 图片为例来看一下具体是如何解码的。
 
 ```cpp
 static jobject doDecode() {
@@ -350,7 +350,7 @@ static jobject doDecode() {
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-decode.png)
 
-最终会调用到 `SkPngCodec.onGetPixels()` 方法。该方法使用 libpng 库解码 PNG 图片。
+最终会调用到 `SkPngCodec.onGetPixels()` 方法，该方法使用 libpng 库解码 PNG 图片。
 
 ```cpp
 SkCodec::Result SkPngCodec::onGetPixels(const SkImageInfo& dstInfo, void* dst,
@@ -371,10 +371,10 @@ SkCodec::Result SkPngCodec::onGetPixels(const SkImageInfo& dstInfo, void* dst,
 }
 ```
 
-解码结果保存在 `void* dst` 指针指向的内存块。而这块内存，也正是上一步中分配的内存。注意这里的 `void* dst` 参数来自 `decodingBitmap.getPixels()`。
+解码结果保存在 `void* dst` 指针指向的内存块。而这块内存正是上一步中分配的内存。稍加留意的话，你会注意到这里的 `void* dst` 参数来自 `decodingBitmap.getPixels()` 的返回值。
 
 ## 创建Java对象
-解码完成后得到 Native 层的 `SkBitmap` 对象，最后一步工作是将其封装成 Java 层可以使用的 `Bitmap` 对象。这一步的工作相对简单。
+解码完成后得到 Native 层的 `SkBitmap` 对象，最后一步工作是将其封装成 Java 层可以使用的 `Bitmap` 对象。这一步的过程相对简单，分为三步：
 
 + `BitmapFactory.doDecode()` 调用 `Bitmap.createBitmap()`
 + `Bitmap.createBitmap()` 调用 Java Bitmap 的构造方法
