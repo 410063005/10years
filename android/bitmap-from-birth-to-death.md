@@ -438,19 +438,19 @@ public final class Bitmap implements Parcelable {
 }
 ```
 
-Java 层的 `Bitmap` 对象在内存中大致是这样：
+至此，Java 层的 `Bitmap` 对象创建完毕，它在内存中大致是这样的：
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-ref-relationship.png)
 
 # 回收
-上一节讲的是 Bitmap 的生，这一节谈谈 Bitmap 的死。跟多数普通 Java 对象不一样，Bitmap 的像素数据在 native heap 中。而我们知道 native heap 并不被 JVM 管理，那如何保证 Bitmap 实例本身被 GC 后 native heap 中的内存不会泄漏呢？
+上一节讲的是 Bitmap 的生，这一节谈谈 Bitmap 的死。跟多数普通 Java 对象不一样，Bitmap 的像素数据在 native heap 中。而我们知道 native heap 并不被 JVM 管理，那如何保证 Bitmap 实例本身被 GC 后 native heap 中的内存也能回收呢？
 
 ## recycle
 首先想到的是代码主动调用 [Bitmap.recycle()](https://developer.android.com/reference/android/graphics/Bitmap.html) 来释放 native 内存。
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-free-mem.png)
 
-上图给出了主要流程。来详细看一下。
+上图给出了主要流程，细节如下。
 
 ```java
     /**
@@ -478,7 +478,7 @@ Java 层的 `Bitmap` 对象在内存中大致是这样：
     }
 ```
 
-Java 层的 `recycle()` 调用 Native 层的 `Bitmap_recycle()`，最终调用到 `SkBitmap.reset()`。
+Java 层的 `recycle()` 调用 Native 层的 `Bitmap_recycle()`，`Bitmap_recycle()` 又调用 `SkBitmap.reset()`。
 
 ```cpp
 // Bitmap.cpp https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp#872
@@ -523,7 +523,7 @@ public:
 }
 ```
 
-最终，[SkBitmap.reset()](https://github.com/google/skia/blob/master/include/core/SkBitmap.h#L334) 会将 `fPixelRef` 置为 `nullptr`。如果 `fPixelRef` 原来指向的那个 `SkPixelRef`。
+最终，[SkBitmap.reset()](https://github.com/google/skia/blob/master/include/core/SkBitmap.h#L334) 会将 `fPixelRef` 置为 `nullptr`。
 
 ```cpp
     /** Resets to its initial state; all fields are set to zero, as if SkBitmap had
@@ -540,7 +540,7 @@ public:
     }
 ```
 
- `fPixelRef` 之前是在如何分配内存过程中被赋值的，代码如下：
+以下代码可以看出之前分配内存过程中 `fPixelRef` 是如何被赋值的，供对比。
 
 ```cpp
 bool SkBitmap::HeapAllocator::allocPixelRef(SkBitmap* dst) {
