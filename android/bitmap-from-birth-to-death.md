@@ -10,7 +10,7 @@ Bitmap 占用内存多是因为其像素数据(pixels)大。像素数据的存�
 + Android 3.0 到 Android 7.1 (API Level 11-26) - 像素数据保存在 java heap
 + Android 8.0 以及之后 - 像素数据保存在 native heap
 
-像素数据的存储方式的变化，实质上就是 Bitmap 内存管理的变化。所以相关代码在不同 Android 版本之间差异有时非常大。本文分析基于 [Android 8.0 源码](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp)分析。
+像素数据的存储方式的变化，导致 Bitmap 内存管理也有所变化。所以相关代码在不同 Android 版本之间差异有时非常大。本文分析基于 [Android 8.0 源码](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/Bitmap.cpp)分析。
 
 # 总览
 
