@@ -59,14 +59,14 @@ Bitmap 是一个"重"资源且管理 Bitmap 并不是个简单活：
 
 ![](https://blog-1251688504.cos.ap-shanghai.myqcloud.com/201906/bitmap-creation-overview.png)
 
-这些方法调用可以粗略总结成四个步骤：
+可以粗略总结成四个步骤：
 
-+ 资源转换 - `BitmapFactory.nativeDecodeXXX()` 负责将 Java 层传来的不同类型的资源转换成下一步可以统一处理的数据类型
-+ 内存分配 - 准确地说这一步是内存管理，简单起见我们只关注内存分配
++ 资源转换 - `nativeDecodeXXX()` 负责将 Java 层传来的不同类型的资源转换成可解码的数据类型
++ 内存分配 - 准确地说这一步是内存管理，但简单起见我们只关注内存分配。分配的内存用于图片解码
 + 图片解码 - Skia 将实际的解码工作交由第三方库，第三库的解码结果填在上一步分配的内存中
 + 创建 Java 对象 - 将填有解码数据的内存块包装成 Java 层的 `android.graphics.Bitmap` 对象
 
-其中 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 是核心。关键流程总结如下：
+上图中 [BitmapFactory.doDecode()](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/oreo-release/core/jni/android/graphics/BitmapFactory.cpp#233) 是核心，其关键步骤如下：
 
 1. Update with options supplied by the client.
 2. Create the codec.
