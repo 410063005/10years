@@ -1,3 +1,6 @@
+# [Android](android/README.md)
+
+
 # Java
 ## 并发
 [001-ThreadLocal的用法](java/concurrent/001-threadlocal.md)
@@ -15,7 +18,6 @@
 # [Python](python/README.md)
 
 
-# [Android](andorid/README)
 
 
 # Linux工具
