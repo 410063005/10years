@@ -1,13 +1,9 @@
 # touch event 是如何分发的
 
 > From Activity viewpoint:
-
 > Touch events are delivered first to Activity.dispatchTouchEvent. It's where you may catch them first.
-
 > Here they get dispatched to Window, where they traverse View hierarchy, in such order that Widgets that are drawn last (on top of other widgets) have chance to process touch in View.onTouchEvent first. If some View returns true in onTouchEvent, then traversal stops and other Views don't receive touch event.
-
 > Finally, if no View consumes touch, it's delivered to Activity.onTouchEvent.
-
 > That's all your control. And it's logical that what you see drawn on top of something else, has chance to process touch event before something drawn below it.
 
 [How are Android touch events delivered? - Stack Overflow](https://stackoverflow.com/questions/7449799/how-are-android-touch-events-delivered)
@@ -105,4 +101,5 @@ When a touch event occurs, first everyone is notified of the event, starting at 
 + [Gestures and Touch Events](https://github.com/codepath/android_guides/wiki/Gestures-and-Touch-Events)
 
 # 来源 
-[How are Android touch events delivered? - Stack Overflow](https://stackoverflow.com/questions/7449799/how-are-android-touch-events-delivered)
++ [How are Android touch events delivered? - Stack Overflow](https://stackoverflow.com/questions/7449799/how-are-android-touch-events-delivered)
++ [How are Android touch events delivered](https://medium.com/@studymongolian/how-touch-events-are-delivered-in-android-eee3b607b038)
