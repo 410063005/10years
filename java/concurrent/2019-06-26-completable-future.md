@@ -4,15 +4,15 @@
 这篇文章介绍 Java 8 并发 API 中引入的 `CompletableFuture` 类的功能和用法。
 
 # Java 中的异步调用
-异步调用很困难。通常我们认为调用是串行过程。但一旦涉及到异步调用，**由回调表示的动作要么散布在代码中，要么嵌套很深**。考虑到还是处理其中可能出现的异常，事情变得更加复杂。
+异步调用很困难。通常我们认为调用是串行过程。但一旦涉及到异步调用，**由回调表示的动作要么散布在代码中，要么嵌套很深**。考虑到还要处理其中可能出现的异常，事情变得更加复杂。
 
 Java 5 中添加 `Future` 接口，用于表示异步调用的结果。但这个接口既没有方法用于组合调用，也不能处理错误/异常。
 
 **Java 8 引入了 `CompletableFuture` 类**。除了继承自 `Future` 接口，它还实现了 `CompletionStage`，这个接口定义了一个异步调用如何跟其他步骤组合。
 
-`CompletableFuture` 同时还是一个构建块以及一个拥有 50 多个不同方法的框架。这些方法用于 compose, combine, 以及执行异步和处理错误。
+`CompletableFuture` 同时还是一个构建块以及一个**拥有 50 多个不同方法的框架。这些方法用于 compose, combine, 以及执行异步和处理错误**。
 
-API 数量确实有点多，但它们大部分用于应对若干清晰和明确的使用场景。
+API 数量确实有点多，但它们大部分有清晰明确的使用场景。
 
 # 将 `CompletableFuture` 用作 `Future`
 
@@ -175,7 +175,7 @@ assertEquals("Hello World", completableFuture.get());
 
 `thenCompose` 和 `thenApply` 方法一直使用，实现了一个基本的 monadic pattern 构建块。它们跟 `Stream` 的 `map` 和 `flatMap` 方法密切相关。`Stream` 和 `Optional` 也是 Java 8 新提供的。
 
-两个方法都接收一个函数，并且将其应用于调用结果，但是 `thenCompose` (flatMap) 方法接收函数并返回另一个有相同的类型的结果，。这个函数式结构允许将这种类型的实例组合成构建块。
+两个方法都接收一个函数，并且将其应用于调用结果，但是 `thenCompose` (flatMap) 方法接收函数并返回另一个有相同的类型的结果。这个函数式结构允许将这种类型的实例组合成构建块。
 
 如果想执行两个独立的 `Future` 并且处理它们的结果，可以使用 `thenCombine` 方法。该方法接收一个 `Future`，以及一个 `Function`。这个 `Function` 有两个参数，即前两个 `Future` 的结果。
 
@@ -219,7 +219,7 @@ CompletableFuture<Integer> computeAnother(Integer i){
 CompletableFuture<Integer> finalResult = compute().thenCompose(this::computeAnother);
 ```
 
-所以如果目的是链式处理 `CompletableFuture` 的方法，使用 `thenCompose()` 更好。
+所以如果目的是链式处理 `CompletableFuture` 的方法，使用 `thenCompose()` 更好。(So if the idea is to chain CompletableFuture methods then it’s better to use thenCompose().)
 
 另外注意两者之间的不同跟[the difference between map() and flatMap()](https://www.baeldung.com/java-difference-map-and-flatmap)中提到的很像。
 
