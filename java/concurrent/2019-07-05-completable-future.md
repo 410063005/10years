@@ -366,3 +366,6 @@ CompletableFuture<Double> result = getUserDetail(userId)
 
 *So, Rule of thumb here - If your callback function returns a CompletableFuture, and you want a flattened result from the CompletableFuture chain (which in most cases you would), then use thenCompose().*
 
+# 参考
+
+[JDK中CompletableFuture类](https://mp.weixin.qq.com/s?__biz=MzU2MTA1OTgyMQ==&mid=2247484865&idx=1&sn=1133bfbb9598d327f1437253c4ebd8ce&chksm=fc7fc743cb084e55d2ad3e58b28b59cf41bb99232b6513e34efaa629decee099bc8c550818a8&mpshare=1&scene=1&srcid=0710Ax1qfElo71VMVCXOl0oq#rd)

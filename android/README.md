@@ -3,6 +3,8 @@
 
 [touch event 的分发流程](view/2019-06-25-how-are-android-touch-events-delivered.md)
 
+[使用正确的 context 来创建 Dialog](view/2019-07-11-dialog-context.md)
+
 # bitmap
 
 + [Bitmap: 从出生到死亡](bitmap/bitmap-from-birth-to-death.md)
