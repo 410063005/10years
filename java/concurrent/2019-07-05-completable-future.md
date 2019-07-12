@@ -329,10 +329,11 @@ CompletableFuture.supplyAsync(() -> {
 ```
 
 ## Combining two CompletableFutures together
-1. Combine two dependent futures using thenCompose() -
-Let’s say that you want to fetch the details of a user from a remote API service and once the user’s detail is available, you want to fetch his Credit rating from another service.
+### 1. Combine two dependent futures using thenCompose() -
 
-Consider the following implementations of getUserDetail() and getCreditRating() methods -
+假如你想从远程 API 获取用户详情，并且用户详情可用时还想从其他 API 获取他的 Credit rating 信息。
+
+可以考虑使用如下方式来实现：
 
 ```java
 CompletableFuture<User> getUsersDetail(String userId) {
@@ -348,16 +349,16 @@ CompletableFuture<Double> getCreditRating(User user) {
 }
 ```
 
-Now, Let’s understand what will happen if we use thenApply() to achieve the desired result -
+现在来看看如果我们使用 `thenApply()` 会出现什么结果。
 
 ```java
 CompletableFuture<CompletableFuture<Double>> result = getUserDetail(userId)
 .thenApply(user -> getCreditRating(user));
 ```
 
-In earlier examples, the Supplier function passed to thenApply() callback would return a simple value but in this case, it is returning a CompletableFuture. Therefore, the final result in the above case is a nested CompletableFuture.
+之前例子中传给 `thenApply()` 的 `Supplier` 函数会返回一个简单值，但在这个例子中它返回的是 `CompletableFuture`。所以最终结果是一个嵌套的 `CompletableFuture`。
 
-If you want the final result to be a top-level Future, use thenCompose() method instead -
+如果你想让结果是 `CompletableFuture` 而不是嵌套的 `CompletableFuture`，应当使用 `thenCompose()`。
 
 ```java
 CompletableFuture<Double> result = getUserDetail(userId)
@@ -365,6 +366,232 @@ CompletableFuture<Double> result = getUserDetail(userId)
 ```
 
 *So, Rule of thumb here - If your callback function returns a CompletableFuture, and you want a flattened result from the CompletableFuture chain (which in most cases you would), then use thenCompose().*
+
+### 2. Combine two independent futures using thenCombine() -
+
+`thenCompose()` 用于一个 future 依赖另一个 future 的情形，而 `thenCombine` 用于两个 future 相互独立的情形。
+
+```java
+System.out.println("Retrieving weight.");
+CompletableFuture<Double> weightInKgFuture = CompletableFuture.supplyAsync(() -> {
+    try {
+        TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException e) {
+       throw new IllegalStateException(e);
+    }
+    return 65.0;
+});
+
+System.out.println("Retrieving height.");
+CompletableFuture<Double> heightInCmFuture = CompletableFuture.supplyAsync(() -> {
+    try {
+        TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException e) {
+       throw new IllegalStateException(e);
+    }
+    return 177.8;
+});
+
+System.out.println("Calculating BMI.");
+CompletableFuture<Double> combinedFuture = weightInKgFuture
+        .thenCombine(heightInCmFuture, (weightInKg, heightInCm) -> {
+    Double heightInMeter = heightInCm/100;
+    return weightInKg/(heightInMeter*heightInMeter);
+});
+
+System.out.println("Your BMI is - " + combinedFuture.get());
+```
+
+传给 `thenCombine()` 的回调函数会在两个 future 均完成时被调用。
+
+## Combining multiple CompletableFutures together
+
+`thenCompose()` 和 `thenCombine()` 用于组合两个 `CompletableFuture`。如果想组合任意数量的 `CompletableFuture`，该如何实现？可以使用以下方法。
+
+```java
+static CompletableFuture<Void>	 allOf(CompletableFuture<?>... cfs)
+static CompletableFuture<Object> anyOf(CompletableFuture<?>... cfs)
+```
+
+### 1. CompletableFuture.allOf()
+
+`CompletableFuture.allOf` 用于有一组相相互独立的 future 的场景，你想并发运行这些 future，并且在它们全部完成后进行某种操作。
+
+比如说你想下载网站中 100 个不同的网页。可以顺序下载，但耗时太多。所以你写一个函数，它接收一个网址，并且返回 `CompletableFuture`，它会异步下载网页内容。
+
+```java
+CompletableFuture<String> downloadWebPage(String pageLink) {
+	return CompletableFuture.supplyAsync(() -> {
+		// Code to download and return the web page's content
+	});
+} 
+```
+
+所有网页下载完成后你还想统计网页内容中关键字 "CompletableFuture" 出现的次数。可以使用 `CompletableFuture.allOf()` 来实现这个需求。
+
+```java
+List<String> webPageLinks = Arrays.asList(...)	// A list of 100 web page links
+
+// Download contents of all the web pages asynchronously
+List<CompletableFuture<String>> pageContentFutures = webPageLinks.stream()
+        .map(webPageLink -> downloadWebPage(webPageLink))
+        .collect(Collectors.toList());
+
+
+// Create a combined Future using allOf()
+CompletableFuture<Void> allFutures = CompletableFuture.allOf(
+        pageContentFutures.toArray(new CompletableFuture[pageContentFutures.size()])
+);
+The problem with CompletableFuture.allOf() is that it returns CompletableFuture<Void>. But we can get the results of all the wrapped CompletableFutures by writing few additional lines of code -
+
+// When all the Futures are completed, call `future.join()` to get their results and collect the results in a list -
+CompletableFuture<List<String>> allPageContentsFuture = allFutures.thenApply(v -> {
+   return pageContentFutures.stream()
+           .map(pageContentFuture -> pageContentFuture.join())
+           .collect(Collectors.toList());
+});
+```
+
+Take a moment to understand the above code snippet. Since we’re calling future.join() when all the futures are complete, we’re not blocking anywhere :-)
+
+The join() method is similar to get(). The only difference is that it throws an unchecked exception if the underlying CompletableFuture completes exceptionally.
+
+Let’s now count the number of web pages that contain our keyword -
+
+```java
+// Count the number of web pages having the "CompletableFuture" keyword.
+CompletableFuture<Long> countFuture = allPageContentsFuture.thenApply(pageContents -> {
+    return pageContents.stream()
+            .filter(pageContent -> pageContent.contains("CompletableFuture"))
+            .count();
+});
+
+System.out.println("Number of Web Pages having CompletableFuture keyword - " + 
+        countFuture.get());
+```
+        
+### 2. CompletableFuture.anyOf()
+CompletableFuture.anyOf() as the name suggests, returns a new CompletableFuture which is completed when any of the given CompletableFutures complete, with the same result.
+
+Consider the following example -
+
+```java
+CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
+    try {
+        TimeUnit.SECONDS.sleep(2);
+    } catch (InterruptedException e) {
+       throw new IllegalStateException(e);
+    }
+    return "Result of Future 1";
+});
+
+CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
+    try {
+        TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException e) {
+       throw new IllegalStateException(e);
+    }
+    return "Result of Future 2";
+});
+
+CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> {
+    try {
+        TimeUnit.SECONDS.sleep(3);
+    } catch (InterruptedException e) {
+       throw new IllegalStateException(e);
+    }
+    return "Result of Future 3";
+});
+
+CompletableFuture<Object> anyOfFuture = CompletableFuture.anyOf(future1, future2, future3);
+
+System.out.println(anyOfFuture.get()); // Result of Future 2
+```
+
+In the above example, the anyOfFuture is completed when any of the three CompletableFutures complete. Since future2 has the least amount of sleep time, it will complete first, and the final result will be - Result of Future 2.
+
+CompletableFuture.anyOf() takes a varargs of Futures and returns CompletableFuture<Object>. The problem with CompletableFuture.anyOf() is that if you have CompletableFutures that return results of different types, then you won’t know the type of your final CompletableFuture.
+
+## CompletableFuture Exception Handling
+
+We explored How to create CompletableFuture, transform them, and combine multiple CompletableFutures. Now let’s understand what to do when anything goes wrong.
+
+Let’s first understand how errors are propagated in a callback chain. Consider the following CompletableFuture callback chain -
+
+```java
+CompletableFuture.supplyAsync(() -> {
+	// Code which might throw an exception
+	return "Some result";
+}).thenApply(result -> {
+	return "processed result";
+}).thenApply(result -> {
+	return "result after further processing";
+}).thenAccept(result -> {
+	// do something with the final result
+});
+```
+
+If an error occurs in the original supplyAsync() task, then none of the thenApply() callbacks will be called and future will be resolved with the exception occurred. If an error occurs in first thenApply() callback then 2nd and 3rd callbacks won’t be called and the future will be resolved with the exception occurred, and so on.
+
+### 1. Handle exceptions using exceptionally() callback
+The exceptionally() callback gives you a chance to recover from errors generated from the original Future. You can log the exception here and return a default value.
+
+```java
+Integer age = -1;
+
+CompletableFuture<String> maturityFuture = CompletableFuture.supplyAsync(() -> {
+    if(age < 0) {
+        throw new IllegalArgumentException("Age can not be negative");
+    }
+    if(age > 18) {
+        return "Adult";
+    } else {
+        return "Child";
+    }
+}).exceptionally(ex -> {
+    System.out.println("Oops! We have an exception - " + ex.getMessage());
+    return "Unknown!";
+});
+
+System.out.println("Maturity : " + maturityFuture.get()); 
+```
+
+Note that, the error will not be propagated further in the callback chain if you handle it once.
+
+### 2. Handle exceptions using the generic handle() method
+
+The API also provides a more generic method - handle() to recover from exceptions. It is called whether or not an exception occurs.
+
+```java
+Integer age = -1;
+
+CompletableFuture<String> maturityFuture = CompletableFuture.supplyAsync(() -> {
+    if(age < 0) {
+        throw new IllegalArgumentException("Age can not be negative");
+    }
+    if(age > 18) {
+        return "Adult";
+    } else {
+        return "Child";
+    }
+}).handle((res, ex) -> {
+    if(ex != null) {
+        System.out.println("Oops! We have an exception - " + ex.getMessage());
+        return "Unknown!";
+    }
+    return res;
+});
+
+System.out.println("Maturity : " + maturityFuture.get());
+```
+
+If an exception occurs, then the res argument will be null, otherwise, the ex argument will be null.
+
+# Conclusion
+Congratulations folks! In this tutorial, we explored the most useful and important concepts of CompletableFuture API.
+
+Thank you for reading. I hope this blog post was helpful to you. Let me know your views, questions, comments in the comment section below.
+
 
 # 参考
 
