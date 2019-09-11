@@ -9,6 +9,36 @@ git log --all --full-history -- **/thefile.*
 git log --all --full-history -- <path-to-file>
 ```
 
+## git:// 代理
+
+1. 从[gist](https://gist.github.com/sit/49288)下载脚本作为可执行文件 `gitproxy-socat`
+2. `git config --global core.gitproxy gitproxy-socat` 配置代理。 参考[ref](https://git-scm.com/docs/git-config)
+
+```
+#!/bin/sh
+# Use socat to proxy git through an HTTP CONNECT firewall.
+# Useful if you are trying to clone git:// from inside a company.
+# Requires that the proxy allows CONNECT to port 9418.
+#
+# Save this file as gitproxy somewhere in your path (e.g., ~/bin) and then run
+#   chmod +x gitproxy
+#   git config --global core.gitproxy gitproxy
+#
+# More details at http://tinyurl.com/8xvpny
+
+# Configuration. Common proxy ports are 3128, 8123, 8000.
+_proxy=proxy.yourcompany.com
+_proxyport=3128
+
+exec socat STDIO PROXY:$_proxy:$1:$2,proxyport=$_proxyport
+```
+
+参考:
+
++ [stackoverflow](https://stackoverflow.com/questions/5860888/git-through-proxy)
++ [v2ex](https://www.v2ex.com/t/332816)
++ [A simple wrapper around socat to use as a git proxy command](https://gist.github.com/sit/49288)
++ [Git - git-config Documentation](https://git-scm.com/docs/git-config)
 
 # curl
 
@@ -119,6 +149,48 @@ ankiserverctl.py debug [configfile]
 ```
 ankiserverctl.py start [cofigfile]
 ```
+
+# vscode
+
+vscode 支持远程开发。配置步骤如下：
+
++ 生成 ssh-key - `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa-remote-ssh`
++ 上传 ssh-key - `ssh-copy-id -p 36000 root@1.1.1.2`
++ 配置 vscode ssh-remote 插件
+
+![-w841](media/15671473755624.jpg)
+
+
+配置文件：
+
+```
+# Read more about SSH config files: https://linux.die.net/man/5/ssh_config
+Host dev-host
+    HostName 1.1.1.2
+    User root
+    Port 36000
+    IdentityFile ~/.ssh/id_rsa-remote-ssh
+```
+
+这里记录配置过程中遇到的一个问题：远程机需要代理上网，vscode 一直卡在 `connect vscode remote server retry` 这个地方。
+
+卡住的原因是 vscode 成功通过 ssh 连接上远程机上后还需要在远程机上下载安装一些命令，代理原因导致这一步不成功，所以卡住了。
+
+解决办法：可以手动从 https://update.code.visualstudio.com/commit:<commit-id>/server-linux-x64/stable 下载文件，并且保存在如下位置。
+
+```
+~/.vscode-server/bin/2213894ea0415ee8c85c5eea0d0ff81ecc191529/vscode-server-linux-x64.tar.gz
+```
+
+重新打开 vscode remote 插件进行配置，成功！
+
++ [#issue 78](https://github.com/microsoft/vscode-remote-release/issues/78)
++ [Developing on Remote Machines using SSH and Visual Studio Code](https://code.visualstudio.com/docs/remote/ssh)
+
+# node
+
+这里记录一个在 centos 上安装 node 遇到的问题：[javascript - node: relocation error: node: symbol SSL_set_cert_cb, version libssl.so.10 not defined in file libssl.so.10 with link time reference - Stack Overflow](https://stackoverflow.com/questions/46473376/node-relocation-error-node-symbol-ssl-set-cert-cb-version-libssl-so-10-not-d)
+
 
 ## 参考
 + [手把手教你搭建自己专属的Anki服务器 - 简书](https://www.jianshu.com/p/c50e3feec878)
