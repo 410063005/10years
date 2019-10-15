@@ -1,6 +1,6 @@
 # git
 
-找出被删除文件的历史记录
+## 找出被删除文件的历史记录
 
 ```
 // 不知道文件名或文件路径时
@@ -8,6 +8,16 @@ git log --all --full-history -- **/thefile.*
 // 知道文件名或文件路径时
 git log --all --full-history -- <path-to-file>
 ```
+
+## 免密码操作
+
+```
+git config credential.helper store
+```
+
+执行上一条命令后，当git push的时候输入一次用户名和密码就会被记录
+
+注意：这样保存的密码是明文的，保存在用户目录~的.git-credentials文件中
 
 ## git:// 代理
 
@@ -39,6 +49,44 @@ exec socat STDIO PROXY:$_proxy:$1:$2,proxyport=$_proxyport
 + [v2ex](https://www.v2ex.com/t/332816)
 + [A simple wrapper around socat to use as a git proxy command](https://gist.github.com/sit/49288)
 + [Git - git-config Documentation](https://git-scm.com/docs/git-config)
+
+# Python
+
+`easy_install` 被废弃了, 使用以下方式安装 `pip`。
+
+```
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+sudo python get-pip.py
+```
+
+# Android SDK
+
+远程 Linux 机器上安装 Android SDK
+
+```
+wget https://dl.google.com/dl/android/studio/ide-zips/3.5.0.21/android-studio-ide-191.5791312-linux.tar.gz
+wget https://dl.google.com/android/repository/platform-tools_r29.0.3-linux.zip
+wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
+```
+
+更新 Android SDK
+
+```
+android update sdk --no-ui --proxy-host <host> --proxy-port <port>
+```
+
+远程 Linux 机器安装 Java
+
+```
+//yum install java
+yum install java-1.8.0-openjdk-devel
+```
+
++ [参考](https://www.vogella.com/tutorials/JenkinsAndroid/article.html)
++ [参考](https://developer.android.com/studio/command-line/sdkmanager)
++ [参考](https://developer.android.com/studio/command-line)
++ [参考](https://www.jianshu.com/p/92cf851c6620)
+
 
 # curl
 
