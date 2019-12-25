@@ -3,8 +3,8 @@
   "fileExtension" : ".md",
   "autoUploadInsertedImageKey" : "腾讯cos-ap-shanghai",
   "autoUploadInsertedImage" : false,
-  "folderType" : 10,
-  "mediaFloder" : "media",
+  "folderType" : 11,
+  "mediaFloder" : "images",
   "orderBy" : 0,
   "newlinesToBR" : 0
 }

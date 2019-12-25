@@ -119,3 +119,10 @@ C++和Java如何处理重载方法?
 + OBJDUMP
 + AR
 + STRINGS
+
+Linux 系统为动态链接器提供了一个简单的接口，包括：
+
++ dlopen()
++ dlsym()
++ dlclose()
++ dlerror()

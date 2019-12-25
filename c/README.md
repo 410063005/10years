@@ -18,3 +18,26 @@
 https://github.com/nomeata/udp-broadcast-relay/blob/master/main.c
 
 > Small daemon to relay udp broadcast packages on a different subnet
+
+
+---
+
+C 学习资料
+
+https://www.programiz.com/c-programming/examples/print-sentence
+
+https://www.programiz.com/c-programming
+
+https://www.studytonight.com/c/programs/
+
+https://www.programmingsimplified.com/c-program-examples
+
+https://beginnersbook.com/2014/01/c-tutorial-for-beginners-with-examples/
+
+https://source.android.com/devices/tech/debug/native-memory
+
+https://android.googlesource.com/platform/bionic/+/master/libc/malloc_debug/README_api.md
+
+https://android.googlesource.com/platform/bionic/+/master/libc/malloc_debug/README.md
+
+

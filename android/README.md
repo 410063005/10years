@@ -3,15 +3,17 @@
 
 # 原理篇
 
-[Android系统原理篇](2019-11-15-android-framework.md)
-
-[其他原理篇](2019-10-31-原理篇.md)
+[原理篇](原理篇.md)
 
 # UI
 
 ## View
 
-[TouchEvent 的分发流程](view/2019-06-25-how-are-android-touch-events-delivered.md)
+[TouchEvent分发流程](view/how-touch-events-delivered.md)
+
+[Activity与Window的关系](view/activity-and-window.md)
+
+[理解TouchEvent的一些参考资料](view/touch-event-resources.md)
 
 [使用正确的 context 来创建 Dialog](view/2019-07-11-dialog-context.md)
 
@@ -23,7 +25,7 @@
 + [Bitmap ImageEncoder](bitmap/bitmap-image-encoder.md) TODO
 + [Bitmap](bitmap/bitmap-blur-gray.md) TODO
 
-## Drawable
+## [Drawable](drawable/README.md)
 
 ## Animation
 
@@ -37,11 +39,18 @@
 
 这里收集值得学习的 lib 源码
 
++ [图片加载库](libs/2019-11-21-image-loader.md)
+
 ## samples
 
 这里收集值得学习的 samples 源码
 
++ [android-cn/android-open-project-demo: Demo of android open source project, 微信公众号:codekk, 网站:](https://github.com/android-cn/android-open-project-demo/tree/master/)
+
+
 # 性能与工具
+
+
 
 ## Performance
 
@@ -50,16 +59,16 @@
 ## Tools
 
 
+# Jetpack 与 Material Design
+
 # 经验和Tips
 
+# 其他话题
 
-# Advanced topics
+## hook
 
-## Jetpack
-
-## Rx
-
-## 架构
-
++ [Android Hook 简介 - 简书](https://www.jianshu.com/p/3185d49418b9) - 原理是替换系统默认定义的mInstrumentation实例
++ [一、什么是hook技术](https://www.kancloud.cn/alex_wsc/android/506821) - hook 技术介绍
++ [深入iOS系统底层之函数调用 - 掘金](https://juejin.im/post/5ce1fe36e51d451075366ef1#heading-6)
 
 # 面试

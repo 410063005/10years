@@ -1,1 +1,0 @@
-[MySQL 插入数据 | 菜鸟教程](http://www.runoob.com/mysql/mysql-insert-query.html)
