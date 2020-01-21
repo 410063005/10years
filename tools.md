@@ -590,6 +590,10 @@ Launching subshell in virtual environment…
 
 [导入 maven 工程至 IDEA](https://www.lagomframework.com/documentation/1.4.x/java/IntellijMaven.html)
 
+# bash
+
+[bash](https://github.com/410063005/the-art-of-command-line/blob/master/README-zh.md)
+
 # 参考
 + [手把手教你搭建自己专属的Anki服务器 - 简书](https://www.jianshu.com/p/c50e3feec878)
 + [anki-sync-server](https://github.com/dsnopek/anki-sync-server)
