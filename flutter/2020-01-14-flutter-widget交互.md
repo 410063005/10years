@@ -186,5 +186,7 @@ class Child1PageState extends State<Child1Page> {
 # 参考
 
 + [Flutter: Communication between widgets - Flutter Community - Medium](https://medium.com/flutter-community/flutter-communication-between-widgets-f5590230df1e)
-+ [InheritedWidget](https://api.flutter.dev/flutter/widgets/InheritedWidget-class.html)
+    + 几种不同同场景下的 widget 交互方式
 + [Widget Communication with Flutter using VoidCallback and Function(x) ← Alligator.io](https://alligator.io/flutter/widget-communication/)
+    + 回调的用法
++ [InheritedWidget](https://api.flutter.dev/flutter/widgets/InheritedWidget-class.html)
