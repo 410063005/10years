@@ -1,0 +1,108 @@
+# 编译 Flutter 引擎
+
+## [配置及下载代码](https://github.com/flutter/flutter/wiki/Setting-up-the-Engine-development-environment)
+
++ [安装 `depot_tools`](https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up) 并添加到环境变量 (包含 `gclient` 脚本)
++ fork [flutter/engine](https://github.com/flutter/engine) (注意配置 ssh 访问)
++ 创建空的 `engine` 目录并在目录中创建 `.gclient` 配置文件
++ 在 `engine` 目录中执行 `gclient sync` (它会 `git clone` 必要的项目及其依赖)
+
+```
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH=$PATH:/path/to/depot_tools
+mkdir engine
+cd engine
+touch .gclient
+
+# edit .gclient
+
+gclient sync
+```
+
+`.gitclient` 配置如下：
+
+```
+solutions = [
+  {
+    "managed": False,
+    "name": "src/flutter",
+    "url": "https://github.com/410063005/engine.git",
+    "custom_deps": {},
+    "deps_file": "DEPS",
+    "safesync_url": "",
+  },
+]
+```
+
+# [编译](https://github.com/flutter/flutter/wiki/Compiling-the-engine)
+
+注意编译前的一个重要操作是将源码切换到 **本地 Flutter SDK** 的 engine version  (一个 commit id) 对应的提交点，避免可能出现的报错。[Flutter Engine与SDK的定制化与编译 - 简书](https://www.jianshu.com/p/ff84455fb451)
+
+```
+# 查看 flutter 版本
+vim src/flutter/bin/internal/engine.version
+
+# 调整代码
+cd engine/src/flutter
+git reset --hard xxxxxxxxxxxxxxxxx
+gclient sync -D --with_branch_heads --with_tags
+
+# 准备构建文件
+cd engine/src
+./flutter/tools/gn --runtime-mode debug
+./flutter/tools/gn --android --unoptimized --runtime-mode=debug --android-cpu=arm64
+
+# 编译
+ninja -C out/host_debug -j 16
+ninja -C out/android_debug_unopt_arm64 -j 16
+```
+
+# 要点
+
++ `ninja` 命令在 `depot_tools` 工具中
++ `--unoptimized` 用于编译可调试的二进制文件，它以 checked mode (Debug 模式)运行 Dart 代码
++ 通常使用 `android_debug_unopt` 在设备上调试引擎
++ 通常使用 `android_debug_unopt_x64` 在模拟器上调试引擎
++ 需要有对应的 host 构建。即，如果你想使用 `android_debug_unopt`，应当确保已构建 `host_debug_unopt` 
+
+# 错误记录
+
+```
+Package freetype2 was not found in the pkg-config search path.
+Perhaps you should add the directory containing `freetype2.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'freetype2' found
+Could not run pkg-config.
+```
+
+解决办法：安装 `freetype-devel`
+
+```
+yum install freetype-devel
+```
+
+# 使用编译后的引擎
+
+`gradle.properties` 文件中增加如下配置：
+
+```
+localEngineOut=/Users/chenming/wd/engine/src/out/android_debug_unopt_arm64
+```
+
+```
+local-engine-repo=
+local-engine-out=/Users/cm/android_debug_unopt/
+local-engine-build-mode=debug
+```
+
+```
+flutter run --local-engine-src-path <FLUTTER_ENGINE_ROOT>/engine/src --local-engine=ios_debug
+flutter run --local-engine-src-path /path/to/engine/src --local-engine=android_debug
+```
+
+
+# 参考
+
++ articles/show/437772
++ [Compiling the engine · flutter/flutter Wiki](https://github.com/flutter/flutter/wiki/Compiling-the-engine#compiling-for-android-from-macos-or-linux)
++ articles/show/401729

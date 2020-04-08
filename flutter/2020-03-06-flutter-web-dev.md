@@ -57,6 +57,58 @@
 9. VS Code 中编辑 Flutter 代码并保存，VS Code Terminal 中输出 `r` 热加载
 10. *本地机器* 浏览器刷新，新代码生效
 
+# 更新
+
+发现 VS Code 打开远程的 Flutter 项目后，代码高亮和自动提示并不生效。原因是要在 SSH 环境中安装 Flutter 插件和 Dart 插件，如下图：
+
+![-w420](/images/15839804475962.jpg)
+
+安装后重启 VS Code，一切就跟本地开发一样了。完美！
+
+----
+
+# 开启 Flutter Web 支持
+
+(这是以前某次折腾后的记录，保留)
+
+[Building a web application with Flutter - Flutter](https://flutter.dev/docs/get-started/web)
+
+1. 切换到 master 分支, `flutter channel master`
+2. 开启 web 支持, `flutter config --enable-web`
+3. 检查是否开启, `flutter devices` 能看到 chrome
+4. 在项目目录中执行
+    1. `flutter create .` (已存在的项目)
+    2. ` flutter create myapp` (新项目)
+5. 运行 web 项目, `flutter run -d chrome`
+6. 打包 web 项目, `flutter build web`
+
+第2步后 `~/.flutter_settings` 文件内容修改为：
+
+```
+{
+  "enable-web": true
+}
+```
+
+第3步检查结果如下：
+
+```
+➜  tip_flutter_web git:(master) ✗ flutter devices
+2 connected devices:
+
+Chrome     • chrome     • web-javascript • Google Chrome 78.0.3904.108
+Web Server • web-server • web-javascript • Flutter Tools
+➜  tip_flutter_web git:(master) ✗
+```
+
+如果提示 `Ambiguous organization in existing files: {com, com.igame}. The --org command line argument must be specified to recreate project.`
+
+```
+flutter create --org com.igame .
+```
+
+----
+
 # 参考
 
 + [Building a web application with Flutter - Flutter](https://flutter.dev/docs/get-started/web)

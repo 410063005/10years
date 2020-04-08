@@ -55,3 +55,47 @@ androidx & jetpack
 # What's new
 
 [What's New in Android (Google I/O'19)](https://youtu.be/td3Kd7fOROw)
+
++ [Android 5.0](https://developer.android.com/about/versions/lollipop)
+    + Material Design
+    + Z 轴、evalation、水波纹动画
+    + ART 虚拟机
+    + 新的 Camera API
+    + 基于 Chrome 的 WebView
+    + Job Scheduling API
+    + dumpsys batterystat 电池使用统计
++ [Android 6.0](https://developer.android.com/about/versions/marshmallow/android-6.0-changes)
+    + 运行时权限
+    + 低电耗模式
+    + 移除了 Apache HTTP 客户端
++ [Android 7.0](https://developer.android.com/about/versions/nougat/android-7.0)
+    + 多窗口支持
+    + **JIT/AOT 编译**
+    + 删除三个常用隐式广播
+        + CONNECTIVITY_ACTION
+        + ACTION_NEW_PICTURE
+        + ACTION_NEW_VIDEO
+    + Vulkan API
+    + APK signature scheme v2
++ [Android 8.0](https://developer.android.com/about/versions/oreo/android-8.0)
+    + 自动填充框架
+    + 可下载字体
+    + 自动调整 TextView 的大小
+    + 新的 StrictMode 检测程序
+    + findViewById() 签名变更
+    + [后台执行限制](https://developer.android.com/about/versions/oreo/background)。使用 [JobScheduler](https://developer.android.com/reference/android/app/job/JobScheduler) 替代后台 Service
++ [Android 9.0](https://developer.android.com/about/versions/pie/android-9.0)
+    + 显示屏缺口支持
+    + ImageDecoder
+    + Neural Networks API 1.1
+    + APK signature scheme v3
+    + 文本优化 [PrecomputedText](https://developer.android.com/reference/android/text/PrecomputedText)
++ [Android 10.0](https://developer.android.com/about/versions/10/highlights)
+    + 可折叠设备
+    + 5G 网络
+    + 深色主题
+    + 加强对非 SDK 接口的限制
++ [Android 11](https://developer.android.com/preview/features)
+    + [使用原始文件路径访问媒体文件](https://mp.weixin.qq.com/s?__biz=MzAwODY4OTk2Mg==&mid=2652052737&idx=1&sn=bcdbd8f73f95aab64b0c842b0436ef0a&chksm=808cbd44b7fb345227416ad5ec9c9ee3ddd37b26029ecb5599a3b09a681212d5f4bf9a5528df&mpshare=1&scene=1&srcid=&sharer_sharetime=1584500940185&sharer_shareid=b5535657e3516bd6d7252ce5f5ed09f4&rd2werd=1#wechat_redirect)
+    + NDK 图像解码器
+    + 资源加载器
