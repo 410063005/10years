@@ -123,7 +123,10 @@ curl 上传文件
 
 ```
 curl http://ip:8000/log/ -F "file=@average.png" -v
+curl -F data=@path/to/local/file UPLOAD_ADDRESS
 ```
+
+`data` 对应于 form 表单中跟文件对应的字段
 
 # 图片压缩
 [pngquant — lossy PNG compressor](https://pngquant.org/)
@@ -256,6 +259,11 @@ Host dev-host
 # node
 
 这里记录一个在 centos 上安装 node 遇到的问题：[javascript - node: relocation error: node: symbol SSL_set_cert_cb, version libssl.so.10 not defined in file libssl.so.10 with link time reference - Stack Overflow](https://stackoverflow.com/questions/46473376/node-relocation-error-node-symbol-ssl-set-cert-cb-version-libssl-so-10-not-d)
+
+## express 搭建文件上传服务
+
++ [express-fileupload - npm](https://www.npmjs.com/package/express-fileupload)
++ [express-fileupload](https://github.com/richardgirges/express-fileupload/blob/master/example/server.js)
 
 ## node热加载
 

@@ -105,3 +105,8 @@ Widget build(BuildContext context) {
 + 使用 GlobalKey
 
 注意，如果当前范围内没有 [Scaffold](https://api.flutter.dev/flutter/material/Scaffold-class.html)，`Scaffold.of` 函数会抛出异常。传入 `nullOk: true` 可以避免没有 Scaffold 时返回 null 而不是抛出异常。
+
+# 参考
+
++ [of method - Scaffold class - material library - Dart API](https://api.flutter.dev/flutter/material/Scaffold/of.html)
++ [Flutter: Showing SnackBar within the Widget that builds a Scaffold](https://medium.com/@ksheremet/flutter-showing-snackbar-within-the-widget-that-builds-a-scaffold-3a817635aeb2)

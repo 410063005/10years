@@ -9,7 +9,8 @@
 
 ```
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-export PATH=$PATH:/path/to/depot_tools
+export PATH=/path/to/depot_tools:$PATH
+# export PATH=/data/github/depot_tools:$PATH
 mkdir engine
 cd engine
 touch .gclient
@@ -53,7 +54,7 @@ cd engine/src
 ./flutter/tools/gn --android --unoptimized --runtime-mode=debug --android-cpu=arm64
 
 # 编译
-ninja -C out/host_debug -j 16
+ninja -C out/host_debug_unopt -j 16
 ninja -C out/android_debug_unopt_arm64 -j 16
 ```
 
@@ -66,6 +67,10 @@ ninja -C out/android_debug_unopt_arm64 -j 16
 + 需要有对应的 host 构建。即，如果你想使用 `android_debug_unopt`，应当确保已构建 `host_debug_unopt` 
 
 # 错误记录
+
+找不到 python 之类的错误
+
+解决方法：检查 depot_tools 是否在环境变量中
 
 ```
 Package freetype2 was not found in the pkg-config search path.
@@ -80,6 +85,54 @@ Could not run pkg-config.
 ```
 yum install freetype-devel
 ```
+
+---
+
+```
+../../third_party/glfw/src/x11_platform.h:39:10: fatal error: 'X11/Xcursor/Xcursor.h' file not found
+#include <X11/Xcursor/Xcursor.h>
+         ^~~~~~~~~~~~~~~~~~~~~~~
+```
+
+编译 glfw 时报错。[原因](https://www.glfw.org/docs/latest/compile.html#compile_deps_x11)是：
+
+```
+../../third_party/glfw/src/x11_platform.h:42:10: fatal error: 'X11/extensions/Xrandr.h' file not found
+#include <X11/extensions/Xrandr.h>
+         ^~~~~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+```
+
+>  For example, on Ubuntu and other distributions based on Debian GNU/Linux, you need to install the xorg-dev package, which pulls in all X.org header packages.
+
+解决办法：安装相关的库
+
+```
+yum install libX11-devel
+yum install libXcursor-devel
+yum install libXrandr-devel
+yum install libXxf86vm-devel
+```
+
+编译 glfw 提示找不到 OpenGL
+
+```
+../../third_party/glfw/include/GLFW/glfw3.h:171:12: fatal error: 'GL/gl.h' file not found
+  #include <GL/gl.h>
+```
+
+解决办法：安装 OpenGL
+
+```
+yum install freeglut-devel
+```
+
+问题：`flutter/tools/gn` 相关的脚本各种奇怪报错
+
+解决办法：使用 python 2.7 而不是 python 3。在 mac 系统上使用 [virtualenv](https://pypi.org/project/virtualenv/) 来创建虚拟的 python 2.7 环境，可以有效避免各种折腾 (我的 mac 机器上装了 conda，缺省使用 pyton 3 所有引起各种编译错误)
+
+![-w1304](/images/15916888375110.jpg)
+
 
 # 使用编译后的引擎
 

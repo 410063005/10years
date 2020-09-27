@@ -56,6 +56,95 @@ The main task runners are:
 
 ![-w525](/images/15841744097254.jpg)
 
+# 源码
+
++ [FlutterEngine](https://github.com/flutter/engine/blob/master/shell/platform/android/io/flutter/embedding/engine/FlutterEngine.java)
++ [FlutterJNI](https://github.com/flutter/engine/blob/f07712bbfa875cccd9196bb1440922af1baf5746/shell/platform/android/io/flutter/embedding/engine/FlutterJNI.java)
++ [platform_view_android_jni](https://github.com/flutter/engine/blob/master/shell/platform/android/platform_view_android_jni.cc)
+
+
+```java
+public class FlutterEngine {
+
+  /** Fully configurable {@code FlutterEngine} constructor. */
+  public FlutterEngine(
+      @NonNull Context context,
+      @NonNull FlutterLoader flutterLoader,
+      @NonNull FlutterJNI flutterJNI,
+      @NonNull PlatformViewsController platformViewsController,
+      @Nullable String[] dartVmArgs,
+      boolean automaticallyRegisterPlugins) {
+    this.flutterJNI = flutterJNI;
+    flutterLoader.startInitialization(context.getApplicationContext());
+    flutterLoader.ensureInitializationComplete(context, dartVmArgs);
+
+    flutterJNI.addEngineLifecycleListener(engineLifecycleListener);
+    attachToJni();
+    ...
+  }
+
+  private void attachToJni() {
+    Log.v(TAG, "Attaching to JNI.");
+    // TODO(mattcarroll): update native call to not take in "isBackgroundView"
+    flutterJNI.attachToNative(false);
+
+    if (!isAttachedToJni()) {
+      throw new RuntimeException("FlutterEngine failed to attach to its native Object reference.");
+    }
+  }
+}
+
+public class FlutterJNI {
+
+  @UiThread
+  public void attachToNative(boolean isBackgroundView) {
+    ensureRunningOnMainThread();
+    ensureNotAttachedToNative();
+    nativePlatformViewId = nativeAttach(this, isBackgroundView);
+  }
+  
+  private native long nativeAttach(@NonNull FlutterJNI flutterJNI, boolean isBackgroundView);
+
+}
+```
+
+```cpp
+bool PlatformViewAndroid::Register(JNIEnv* env) {
+  ...
+  return RegisterApi(env);
+}
+
+bool RegisterApi(JNIEnv* env) {
+  static const JNINativeMethod flutter_jni_methods[] = {
+      // Start of methods from FlutterJNI
+      {
+          .name = "nativeAttach",
+          .signature = "(Lio/flutter/embedding/engine/FlutterJNI;Z)J",
+          .fnPtr = reinterpret_cast<void*>(&AttachJNI),
+      },
+    };
+    ...
+  }      
+}
+
+// Called By Java
+
+static jlong AttachJNI(JNIEnv* env,
+                       jclass clazz,
+                       jobject flutterJNI,
+                       jboolean is_background_view) {
+  fml::jni::JavaObjectWeakGlobalRef java_object(env, flutterJNI);
+  auto shell_holder = std::make_unique<AndroidShellHolder>(
+      FlutterMain::Get().GetSettings(), java_object, is_background_view);
+  if (shell_holder->IsValid()) {
+    return reinterpret_cast<jlong>(shell_holder.release());
+  } else {
+    return 0;
+  }
+}
+```
+
+
 # 参考
 
 https://github.com/flutter/flutter/wiki/The-Engine-architecture
